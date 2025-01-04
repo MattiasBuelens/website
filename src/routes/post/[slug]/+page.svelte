@@ -17,21 +17,15 @@
 
   const url = `${website}/${data.post.slug}`
 
-  // if we came from /posts, we will use history to go back to preserve
-  // posts pagination
-  let canGoBack = $state(false)
+  // preserve posts navigation if we came from e.g. /posts/2
+  let goBackUrl: string | undefined = $state(undefined)
   afterNavigate(({ from }) => {
-    if (from && from.url.pathname.startsWith('/posts')) {
-      canGoBack = true
+    if (from?.url.pathname.startsWith('/posts')) {
+      goBackUrl = from.url.pathname
+    } else {
+      goBackUrl = undefined
     }
   })
-
-  function goBack(event: Event) {
-    if (canGoBack) {
-      event.preventDefault()
-      history.back()
-    }
-  }
 </script>
 
 <svelte:head>
@@ -60,10 +54,8 @@
     <div class="sticky top-0 flex w-full justify-end pr-8 pt-11">
       <a
         class="group -left-16 -top-1 mb-8 hidden size-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md shadow-zinc-800/5 ring-1 ring-zinc-900/5 transition dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0 dark:ring-white/10 dark:hover:border-zinc-700 dark:hover:ring-white/20 dark:focus-visible:ring-2 lg:flex"
-        href={canGoBack ? undefined : '/posts'}
+        href={goBackUrl ?? '/posts'}
         aria-label="Go back to posts"
-        onclick={goBack}
-        onkeydown={goBack}
       >
         <ArrowLeftIcon
           class="size-4 stroke-zinc-500 transition group-hover:stroke-zinc-700 dark:stroke-zinc-500 dark:group-hover:stroke-zinc-400"
