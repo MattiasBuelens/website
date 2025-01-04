@@ -2,6 +2,7 @@ import autolinkHeadings from 'rehype-autolink-headings'
 import slugPlugin from 'rehype-slug'
 import relativeImages from 'mdsvex-relative-images'
 import remarkHeadings from '@vcarl/remark-headings'
+import remarkFootnotes from 'remark-footnotes'
 
 /** @type {import('mdsvex').MdsvexOptions} */
 export default {
@@ -12,7 +13,7 @@ export default {
     backticks: true,
     dashes: 'oldschool'
   },
-  remarkPlugins: [relativeImages, headings],
+  remarkPlugins: [relativeImages, headings, remarkFootnotes],
   rehypePlugins: [
     slugPlugin,
     [
