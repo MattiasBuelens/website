@@ -1,6 +1,7 @@
 <script lang="ts">
   import { browser } from '$app/environment'
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
+  import { SvelteSet } from 'svelte/reactivity'
   import Card from './Card.svelte'
   import type { Post } from '$lib/data/posts'
 
@@ -8,12 +9,21 @@
 
   let elements: HTMLElement[] = []
   let headings = $state(post.headings)
+  let observer: IntersectionObserver | undefined
 
   onMount(() => {
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(updateVisibleHeadings)
+    }
     updateHeadings()
-    setActiveHeading()
+    updateVisibleHeadings([])
   })
 
+  onDestroy(() => {
+    observer?.disconnect()
+  })
+
+  let visibleHeadings = new SvelteSet<Element>()
   let activeHeadingIndex = $state(0)
   let activeHeading = $derived(headings[activeHeadingIndex])
 
@@ -21,20 +31,31 @@
     headings = post.headings
 
     if (browser) {
+      for (const element of elements) {
+        observer?.unobserve(element)
+      }
       elements = headings.map((heading) => {
         return document.getElementById(heading.id)!
       })
+      for (const element of elements) {
+        observer?.observe(element)
+      }
     }
   }
 
-  function setActiveHeading() {
-    const scrollY = window.scrollY
-    activeHeadingIndex =
-      elements.findIndex((element) => element.offsetTop + element.clientHeight > scrollY) - 1
+  function updateVisibleHeadings(entries: readonly IntersectionObserverEntry[]) {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        visibleHeadings.add(entry.target)
+      } else {
+        visibleHeadings.delete(entry.target)
+      }
+    }
 
+    activeHeadingIndex = elements.findIndex((element) => visibleHeadings.has(element))
     if (activeHeadingIndex < 0) {
       const pageHeight = document.body.scrollHeight
-      const scrollProgress = (scrollY + window.innerHeight) / pageHeight
+      const scrollProgress = (window.scrollY + window.innerHeight) / pageHeight
 
       if (scrollProgress > 0.5) {
         activeHeadingIndex = headings.length - 1
@@ -44,8 +65,6 @@
     }
   }
 </script>
-
-<svelte:window onscroll={setActiveHeading} />
 
 <Card>
   {#snippet description()}
