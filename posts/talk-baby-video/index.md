@@ -4,6 +4,7 @@ date: 2024-12-30T16:00:00+01:00
 ---
 
 At Demuxed 2022, I presented a talk about how I re-built the HTML5 `<video>` element using [Custom Elements] and [WebCodecs].
+You can watch the talk below, and read along for (much) more details about why and how I built this crazy contraption.
 
 <script>
 import Video from "#lib/components/Video.svelte";
@@ -48,7 +49,7 @@ For videos on the web, everything starts with the [HTML `<video>` element](https
 <video controls src="https://example.com/video.mp4"></video>
 ```
 
-This gives you a basic but fully functional media player right inside your website or web app:
+This gives you a basic but fully functional player right inside your website or web app. Like so:
 
 <!-- svelte-ignore a11y_media_has_caption -->
 <video controls src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
@@ -71,20 +72,48 @@ However, even the MSE API has its limitations:
 - MSE lets you control how your media is _buffered_, but not how it is _played_.
   - There's no way to control when the `<video>` element should start playing.
     Most browsers will initiate playback after a couple of audio and video frames have been buffered and decoded,
-    but the precise thresholds varies between browsers.
+    but the precise thresholds vary between browsers, leading to different startup times.
   - For live streams, it may sometimes be preferable to drop a couple of bad or missing frames, instead of stalling the player.
     However, right now, a JavaScript player can't easily detect or control that.
     Instead, it must handle this "after the fact", i.e. by trying to recover _after_ the `<video>` element starts stalling.
-- MSE requires media samples to be carried inside a container format, such as fragmented MP4 or WebM.
+- MSE requires media samples to be carried inside a container format, such as fragmented MP4 (CMAF) or WebM.
   - When the source media uses a different format (e.g. [MPEG-TS]), the JavaScript player must first extract the media samples
     from their original container ("demux") and then put them back into a new container ("mux" or "remux").
     This second step is pure overhead, since MSE will immediately extract those samples out of the new container again.
 
-This is where [WebCodecs] comes in. WebCodecs allows JavaScript to talk directly with audio and video decoders.
+That's why I wanted to experiment with building a video player that takes _full control_ over both buffering and playing
+the media, _without_ using a `<video>` element or MSE. First of all, I wanted to better understand what the browser's
+own `<video>` element is doing, by trying to replicate it myself in JavaScript. Also, I wanted to see what kind of choices
+you can make inside the lower levels of a video player, choices over which you would usually not have control.
+And of course, any new experiment is a great excuse to try out some fancy new web APIs. 😄
+
+## How?
+
+Until a few years ago, building a fully-fledged video player with smooth playback _without_ a `<video>` element
+would have been (nearly) impossible, although there are some exceptions.
+
+For example, [VLC.js] is a port of VLC media player compiled to WebAssembly, and renders to `<canvas>` (for video)
+and WebAudio (for audio). This is an amazing project and showcases the versatility of [their code](https://code.videolan.org/jbk/vlc.js).
+However, since _everything_ is done in software, VLC.js can't take advance of the hardware accelerated decoders that
+are generally already available in CPUs and GPUs. Hardware decoding is essential to achieve smooth and
+battery-efficient playback across all devices, and that's VLC.js is still more of an experiment rather than a
+production-ready web-based streaming solution. [^1]
+
+[^1]:
+    I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
+    hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
+
+Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders,
 This means that you can build a JavaScript player with _full control_ over the precise time when each audio and video
 frame should be decoded, when to render them, and what to do when frames are broken or missing.
-This comes with a lot of freedom, but also a lot of responsibility, since it's now up to the JavaScript player
-to guarantee smooth playback.
+
+Importantly, these are the _same_ decoders that the browser uses for its own video decoding needs, so they can also
+be hardware accelerated! This is a game changer, since it's the first time we can directly tap into these on the web
+from JavaScript, without going through a `<video>` element.
+
+WebCodecs brings a lot of freedom but also a lot of responsibility. It's now up to the JavaScript player
+to guarantee smooth playback and to deal with mishaps such as corrupted frames, broken frames, or frames that arrive
+too late or just never arrive at all.
 
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
@@ -94,3 +123,4 @@ to guarantee smooth playback.
 [Shaka Player]: https://github.com/shaka-project/shaka-player
 [THEOplayer]: https://www.theoplayer.com/
 [MPEG-TS]: https://en.wikipedia.org/wiki/MPEG_transport_stream
+[VLC.js]: https://videolabs.io/communication/vlcjs-demo/vlc.html
