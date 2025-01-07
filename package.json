@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
+    "baseline-status": "^1.0.10",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "heroicons-svelte": "^2.0.2",

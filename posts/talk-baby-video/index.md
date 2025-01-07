@@ -9,6 +9,7 @@ You can watch the talk below, and read along for (much) more details about why a
 <script>
 import Video from "#lib/components/Video.svelte";
 import Iframe from "#lib/components/Iframe.svelte";
+import BaselineStatus from "#lib/components/BaselineStatus.svelte";
 </script>
 
 ## Watch the talk
@@ -87,7 +88,7 @@ own `<video>` element is doing, by trying to replicate it myself in JavaScript. 
 you can make inside the lower levels of a video player, choices over which you would usually not have control.
 And of course, any new experiment is a great excuse to try out some fancy new web APIs. 😄
 
-## How?
+## WebCodecs to the rescue
 
 Until a few years ago, building a fully-fledged video player with smooth playback _without_ a `<video>` element
 would have been (nearly) impossible, although there are some exceptions.
@@ -114,6 +115,8 @@ from JavaScript, without going through a `<video>` element.
 WebCodecs brings a lot of freedom but also a lot of responsibility. It's now up to the JavaScript player
 to guarantee smooth playback and to deal with mishaps such as corrupted frames, broken frames, or frames that arrive
 too late or just never arrive at all.
+
+<BaselineStatus featureId="webcodecs"></BaselineStatus>
 
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
