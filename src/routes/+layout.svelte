@@ -4,6 +4,7 @@
   import type { Snippet } from 'svelte'
   import { MoonIcon, SunIcon } from 'heroicons-svelte/24/solid'
   import { browser } from '$app/environment'
+  import { resolve } from '$app/paths'
   import { name } from '$lib/info'
   import { page } from '$app/state'
 
@@ -26,7 +27,7 @@
     <header class="mx-auto flex w-full max-w-2xl items-center justify-between py-4 lg:pb-8">
       <a
         class="bg-linear-to-r from-teal-500 to-teal-600 bg-clip-text text-lg font-bold text-transparent! sm:text-2xl dark:to-teal-400"
-        href="/"
+        href={resolve('/')}
       >
         {name}
       </a>

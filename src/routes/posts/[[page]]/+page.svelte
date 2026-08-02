@@ -4,6 +4,7 @@
   import ArrowLeftIcon from '$lib/components/ArrowLeftIcon.svelte'
   import ArrowRightIcon from '$lib/components/ArrowRightIcon.svelte'
   import PostsList from '$lib/components/PostsList.svelte'
+  import { resolve } from '$app/paths'
 
   let { data }: { data: PageData } = $props()
 
@@ -27,7 +28,10 @@
   <!-- pagination -->
   <div class="flex items-center justify-between pt-16 pb-8">
     {#if !isFirstPage}
-      <a href={`/posts/${data.page - 1}`} data-sveltekit-preload-data="hover">
+      <a
+        href={resolve('/posts/[[page]]', { page: String(data.page - 1) })}
+        data-sveltekit-preload-data="hover"
+      >
         <ArrowLeftIcon class="size-4" />
         Previous
       </a>
@@ -36,7 +40,9 @@
     {/if}
 
     {#if hasNextPage}
-      <a href={`/posts/${data.page + 1}`} data-sveltekit-preload-data="hover"
+      <a
+        href={resolve('/posts/[[page]]', { page: String(data.page + 1) })}
+        data-sveltekit-preload-data="hover"
         >Next
         <ArrowRightIcon class="size-4" />
       </a>

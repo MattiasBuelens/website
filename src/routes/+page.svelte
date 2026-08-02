@@ -4,6 +4,7 @@
   import PostsList from '$lib/components/PostsList.svelte'
   import SocialLinks from '$lib/components/SocialLinks.svelte'
   import { avatar, bio, name } from '$lib/info'
+  import { resolve } from '$app/paths'
 
   let { data }: { data: PageData } = $props()
 </script>
@@ -35,7 +36,7 @@
       <h2 class="text-sm font-medium text-zinc-500 sm:text-base dark:text-zinc-400">
         Recently Published
       </h2>
-      <a href="/posts" class="flex items-center gap-1 text-sm font-medium text-teal-500"
+      <a href={resolve('/posts')} class="flex items-center gap-1 text-sm font-medium text-teal-500"
         >View All <ArrowRightIcon class="size-4" /></a
       >
     </div>

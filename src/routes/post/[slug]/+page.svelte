@@ -4,6 +4,7 @@
   import ToC from '$lib/components/ToC.svelte'
   import ArrowLeftIcon from '$lib/components/ArrowLeftIcon.svelte'
   import SocialLinks from '$lib/components/SocialLinks.svelte'
+  import { resolve } from '$app/paths'
   import { afterNavigate } from '$app/navigation'
   import PostDate from '$lib/components/PostDate.svelte'
 
@@ -12,6 +13,7 @@
   // generated open-graph image for sharing on social media.
   // see https://og-image.vercel.app/ for more options.
   const ogImage = $derived(getOgImage(data.post.title))
+
   function getOgImage(title: string): string {
     return `https://og-image.vercel.app/**${encodeURIComponent(
       title
@@ -21,12 +23,12 @@
   const url = $derived(`${website}/${data.post.slug}`)
 
   // preserve posts navigation if we came from e.g. /posts/2
-  let goBackUrl: string | undefined = $state(undefined)
+  let goBackPage: string | undefined = $state(undefined)
   afterNavigate(({ from }) => {
-    if (from?.url.pathname.startsWith('/posts')) {
-      goBackUrl = from.url.pathname
+    if (from?.route.id === '/posts/[[page]]') {
+      goBackPage = from.params!.page
     } else {
-      goBackUrl = undefined
+      goBackPage = undefined
     }
   })
 </script>
@@ -57,7 +59,7 @@
     <div class="sticky top-0 flex w-full justify-end pt-11 pr-8">
       <a
         class="group -top-1 -left-16 mb-8 hidden size-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md ring-1 shadow-zinc-800/5 ring-zinc-900/5 transition lg:flex dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0 dark:ring-white/10 dark:hover:border-zinc-700 dark:hover:ring-white/20 dark:focus-visible:ring-2"
-        href={goBackUrl ?? '/posts'}
+        href={goBackPage ? resolve('/posts/[[page]]', { page: goBackPage }) : resolve('/posts')}
         aria-label="Go back to posts"
       >
         <ArrowLeftIcon
@@ -92,7 +94,7 @@
           <SocialLinks />
         </div>
         <div class="order-2 flex justify-center md:order-1 md:col-span-2">
-          <a href="/" class="inline-block rounded-full">
+          <a href={resolve('/')} class="inline-block rounded-full">
             <img
               src={avatar}
               alt={name}
