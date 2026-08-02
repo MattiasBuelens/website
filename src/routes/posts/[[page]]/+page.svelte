@@ -25,7 +25,7 @@
   </div>
 
   <!-- pagination -->
-  <div class="flex items-center justify-between pb-8 pt-16">
+  <div class="flex items-center justify-between pt-16 pb-8">
     {#if !isFirstPage}
       <a href={`/posts/${data.page - 1}`} data-sveltekit-preload-data="hover">
         <ArrowLeftIcon class="size-4" />

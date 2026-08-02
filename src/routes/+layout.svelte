@@ -25,7 +25,7 @@
   <div class="flex w-full grow flex-col px-4 py-2">
     <header class="mx-auto flex w-full max-w-2xl items-center justify-between py-4 lg:pb-8">
       <a
-        class="bg-linear-to-r from-teal-500 to-teal-600 bg-clip-text text-lg font-bold text-transparent! dark:to-teal-400 sm:text-2xl"
+        class="bg-linear-to-r from-teal-500 to-teal-600 bg-clip-text text-lg font-bold text-transparent! sm:text-2xl dark:to-teal-400"
         href="/"
       >
         {name}
@@ -50,10 +50,7 @@
         <SunIcon class="block text-zinc-400 dark:hidden" />
       </button>
     </header>
-    <main
-      class="mx-auto flex w-full grow flex-col"
-      class:max-w-2xl={!page.data.layout?.fullWidth}
-    >
+    <main class="mx-auto flex w-full grow flex-col" class:max-w-2xl={!page.data.layout?.fullWidth}>
       {@render children?.()}
     </main>
   </div>

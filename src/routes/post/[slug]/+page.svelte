@@ -51,9 +51,9 @@
 
 <div class="root mx-auto max-w-2xl lg:max-w-none">
   <div class="hidden pt-8 lg:block">
-    <div class="sticky top-0 flex w-full justify-end pr-8 pt-11">
+    <div class="sticky top-0 flex w-full justify-end pt-11 pr-8">
       <a
-        class="group -left-16 -top-1 mb-8 hidden size-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md shadow-zinc-800/5 ring-1 ring-zinc-900/5 transition dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0 dark:ring-white/10 dark:hover:border-zinc-700 dark:hover:ring-white/20 dark:focus-visible:ring-2 lg:flex"
+        class="group -top-1 -left-16 mb-8 hidden size-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md ring-1 shadow-zinc-800/5 ring-zinc-900/5 transition lg:flex dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0 dark:ring-white/10 dark:hover:border-zinc-700 dark:hover:ring-white/20 dark:focus-visible:ring-2"
         href={goBackUrl ?? '/posts'}
         aria-label="Go back to posts"
       >
@@ -68,7 +68,7 @@
     <article>
       <header class="flex flex-col">
         <h1
-          class="mt-6 text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl"
+          class="mt-6 text-4xl font-bold tracking-tight text-zinc-800 sm:text-5xl dark:text-zinc-100"
         >
           {data.post.title}
         </h1>
@@ -93,7 +93,7 @@
             <img
               src={avatar}
               alt={name}
-              class="mx-auto size-24 rounded-full ring-2 ring-zinc-200 dark:ring-zinc-700 md:h-28 md:w-28"
+              class="mx-auto size-24 rounded-full ring-2 ring-zinc-200 md:h-28 md:w-28 dark:ring-zinc-700"
             />
           </a>
         </div>
