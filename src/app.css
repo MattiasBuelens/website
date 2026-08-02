@@ -39,3 +39,7 @@
     @apply border-zinc-100 dark:border-zinc-700/25;
   }
 }
+
+@utility grid-cols-center-2xl {
+  grid-template-columns: 1fr var(--container-2xl) 1fr;
+}

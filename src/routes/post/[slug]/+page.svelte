@@ -54,7 +54,7 @@
   <meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
-<div class="root mx-auto max-w-2xl lg:max-w-none">
+<div class="lg:grid-cols-center-2xl mx-auto grid max-w-2xl grid-cols-1 lg:max-w-none">
   <div class="hidden pt-8 lg:block">
     <div class="sticky top-0 flex w-full justify-end pt-11 pr-8">
       <a
@@ -116,17 +116,3 @@
     </aside>
   </div>
 </div>
-
-<style lang="postcss">
-  .root {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-
-  @media screen(lg) {
-    .root {
-      /* 42rem matches max-w-2xl */
-      grid-template-columns: 1fr 42rem 1fr;
-    }
-  }
-</style>
