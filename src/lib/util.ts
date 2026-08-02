@@ -11,3 +11,17 @@ export function paginate<T>(
 
   return data
 }
+
+/**
+ * Counts the number of pages.
+ */
+export function countPages<T>(data: readonly T[], limit: number): number {
+  return Math.ceil(data.length / limit)
+}
+
+/**
+ * Returns all numbers from `0` up to `length - 1`.
+ */
+export function rangeTo(length: number): number[] {
+  return Array.from({ length }, (_, i) => i)
+}

@@ -1,11 +1,13 @@
-import type { PageServerLoad } from './$types'
+import type { EntryGenerator, PageServerLoad } from './$types'
 import { posts } from '$lib/data/posts'
-import { paginate } from '$lib/util'
+import { countPages, paginate, rangeTo } from '$lib/util'
 import { error } from '@sveltejs/kit'
+
+const limit = 10
+const numPages = countPages(posts, limit)
 
 export const load: PageServerLoad = async ({ params }) => {
   const page = params.page ? parseInt(params.page, 10) : 1
-  const limit = 10
 
   const postsForPage = paginate(posts, { limit, page })
 
@@ -19,4 +21,15 @@ export const load: PageServerLoad = async ({ params }) => {
     page,
     limit
   }
+}
+
+// List all pages for SSR
+// https://svelte.dev/docs/kit/page-options#entries
+export const entries: EntryGenerator = () => {
+  return [
+    // /posts/
+    { page: undefined },
+    // /posts/[[page]]
+    ...rangeTo(numPages).map((i) => ({ page: String(i + 1) }))
+  ]
 }
