@@ -3,7 +3,12 @@
 </script>
 
 {#if github}
-  <a href={`https://github.com/${github}`} rel="me" class="group" aria-label="Follow on GitHub">
+  <a
+    href={`https://github.com/${github}`}
+    rel="me external"
+    class="group"
+    aria-label="Follow on GitHub"
+  >
     <svg
       viewBox="0 0 24 24"
       aria-hidden="true"
@@ -21,7 +26,7 @@
 {#if twitter}
   <a
     href={`https://twitter.com/${twitter}`}
-    rel="me"
+    rel="me external"
     class="group"
     aria-label="Follow on X/Twitter"
   >
@@ -40,7 +45,7 @@
 {#if bluesky}
   <a
     href={`https://bsky.app/profile/${bluesky}`}
-    rel="me"
+    rel="me external"
     class="group"
     aria-label="Follow on Bluesky"
   >
@@ -57,7 +62,7 @@
 {/if}
 
 {#if mastodon}
-  <a href={mastodon} rel="me" class="group" aria-label="Follow on Mastodon">
+  <a href={mastodon} rel="me external" class="group" aria-label="Follow on Mastodon">
     <svg
       viewBox="0 0 74 79"
       aria-hidden="true"
@@ -74,7 +79,7 @@
 {#if instagram}
   <a
     href={`https://instagram.com/${instagram}`}
-    rel="me"
+    rel="me external"
     class="group"
     aria-label="Follow on Instagram"
   >
@@ -96,7 +101,7 @@
 {#if linkedin}
   <a
     href={`https://linkedin.com/in/${linkedin}`}
-    rel="me"
+    rel="me external"
     class="group"
     aria-label="Follow on LinkedIn"
   >
