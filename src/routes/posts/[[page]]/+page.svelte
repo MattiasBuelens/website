@@ -55,9 +55,10 @@
 
   a {
     @apply flex items-center gap-2 font-medium text-zinc-700;
-  }
 
-  :global(.dark) a {
-    @apply text-zinc-300;
+    /* can't use dark: modifier in @apply */
+    @variant dark {
+      @apply text-zinc-300;
+    }
   }
 </style>

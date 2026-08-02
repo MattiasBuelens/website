@@ -92,10 +92,10 @@
 
   .active {
     @apply ml-[-2px] border-l-2 font-medium text-slate-900;
-  }
 
-  /* can't use dark: modifier in @apply */
-  :global(.dark) .active {
-    @apply text-slate-100;
+    /* can't use dark: modifier in @apply */
+    @variant dark {
+      @apply text-slate-100;
+    }
   }
 </style>
