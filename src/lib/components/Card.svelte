@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import type { SvelteHTMLElements } from 'svelte/elements'
-  let {
+  import type { ResolvedPathname } from '$app/types'
+
+  const {
     as = 'div',
     href = undefined,
     class: _class = undefined,
@@ -12,7 +14,7 @@
     ...rest
   }: Omit<SvelteHTMLElements['div'], 'title'> & {
     as?: string
-    href?: string
+    href?: ResolvedPathname
     class?: string
     eyebrow?: Snippet
     title?: Snippet
@@ -34,6 +36,7 @@
         <div
           class="absolute -inset-x-4 -inset-y-6 z-0 scale-95 bg-zinc-50 opacity-0 transition group-hover:scale-100 group-hover:opacity-100 sm:-inset-x-6 sm:rounded-2xl dark:bg-zinc-800/50"
         ></div>
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
         <a {href} data-sveltekit-preload-data="hover">
           <span class="absolute -inset-x-4 -inset-y-6 z-20 sm:-inset-x-6 sm:rounded-2xl"></span>
           <span class="relative z-10">

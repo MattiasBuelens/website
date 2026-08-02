@@ -3,11 +3,12 @@
   import ArrowRightIcon from './ArrowRightIcon.svelte'
   import type { Snippet } from 'svelte'
   import type { Post } from '$lib/data/posts'
+  import { resolve } from '$app/paths'
 
   let { post, eyebrow: _eyebrow }: { post: Post; eyebrow: Snippet } = $props()
 </script>
 
-<Card href={`/post/${post.slug}`}>
+<Card href={resolve('/post/[slug]', { slug: post.slug })}>
   {#snippet eyebrow()}
     {@render _eyebrow?.()}
   {/snippet}
