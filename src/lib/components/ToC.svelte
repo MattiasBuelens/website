@@ -8,7 +8,7 @@
   let { post }: { post: Post } = $props()
 
   let elements: HTMLElement[] = []
-  let headings = $state(post.headings)
+  let headings = $derived(post.headings)
   let observer: IntersectionObserver | undefined
 
   onMount(() => {
@@ -28,8 +28,6 @@
   let activeHeading = $derived(headings[activeHeadingIndex])
 
   function updateHeadings() {
-    headings = post.headings
-
     if (browser) {
       for (const element of elements) {
         observer?.unobserve(element)

@@ -11,11 +11,14 @@
 
   // generated open-graph image for sharing on social media.
   // see https://og-image.vercel.app/ for more options.
-  const ogImage = `https://og-image.vercel.app/**${encodeURIComponent(
-    data.post.title
-  )}**?theme=light&md=1&fontSize=100px&images=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Ffront%2Fassets%2Fdesign%2Fhyper-color-logo.svg`
+  const ogImage = $derived(getOgImage(data.post.title))
+  function getOgImage(title: string): string {
+    return `https://og-image.vercel.app/**${encodeURIComponent(
+      title
+    )}**?theme=light&md=1&fontSize=100px&images=https%3A%2F%2Fassets.vercel.com%2Fimage%2Fupload%2Ffront%2Fassets%2Fdesign%2Fhyper-color-logo.svg`
+  }
 
-  const url = `${website}/${data.post.slug}`
+  const url = $derived(`${website}/${data.post.slug}`)
 
   // preserve posts navigation if we came from e.g. /posts/2
   let goBackUrl: string | undefined = $state(undefined)
