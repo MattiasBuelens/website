@@ -45,6 +45,8 @@
 </div>
 
 <style lang="postcss">
+  @reference "../../app.css";
+
   a {
     @apply flex items-center gap-2 font-medium text-zinc-700;
   }

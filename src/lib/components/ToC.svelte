@@ -86,6 +86,8 @@
 </Card>
 
 <style lang="postcss">
+  @reference "../../app.css";
+
   .heading {
     padding-left: calc(var(--depth, 0) * 0.35rem);
   }
