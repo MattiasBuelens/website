@@ -15,7 +15,7 @@
   <title>{name} | Posts</title>
 </svelte:head>
 
-<div class="flex flex-grow flex-col">
+<div class="flex grow flex-col">
   <header class="pt-4">
     <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">Blog</h1>
   </header>

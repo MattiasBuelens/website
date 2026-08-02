@@ -91,7 +91,7 @@
   }
 
   .active {
-    @apply -ml-[2px] border-l-2 font-medium text-slate-900;
+    @apply ml-[-2px] border-l-2 font-medium text-slate-900;
   }
 
   /* can't use dark: modifier in @apply */

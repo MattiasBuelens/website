@@ -13,7 +13,7 @@
   <meta name="description" content={bio} />
 </svelte:head>
 
-<div class="flex flex-grow flex-col gap-8 pb-16">
+<div class="flex grow flex-col gap-8 pb-16">
   <!-- bio -->
   <section class="flex flex-col items-center gap-16 pb-16 pt-8">
     <div class="flex w-full flex-col items-center gap-6 rounded-lg">

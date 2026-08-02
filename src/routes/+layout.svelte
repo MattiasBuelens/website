@@ -14,18 +14,18 @@
   )
 
   function disableTransitionsTemporarily() {
-    document.documentElement.classList.add('[&_*]:!transition-none')
+    document.documentElement.classList.add('**:transition-none!')
     window.setTimeout(() => {
-      document.documentElement.classList.remove('[&_*]:!transition-none')
+      document.documentElement.classList.remove('**:transition-none!')
     }, 0)
   }
 </script>
 
 <div class="flex min-h-screen flex-col">
-  <div class="flex w-full flex-grow flex-col px-4 py-2">
+  <div class="flex w-full grow flex-col px-4 py-2">
     <header class="mx-auto flex w-full max-w-2xl items-center justify-between py-4 lg:pb-8">
       <a
-        class="bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-lg font-bold !text-transparent dark:to-teal-400 sm:text-2xl"
+        class="bg-linear-to-r from-teal-500 to-teal-600 bg-clip-text text-lg font-bold text-transparent! dark:to-teal-400 sm:text-2xl"
         href="/"
       >
         {name}
@@ -51,7 +51,7 @@
       </button>
     </header>
     <main
-      class="mx-auto flex w-full flex-grow flex-col"
+      class="mx-auto flex w-full grow flex-col"
       class:max-w-2xl={!page.data.layout?.fullWidth}
     >
       {@render children?.()}
