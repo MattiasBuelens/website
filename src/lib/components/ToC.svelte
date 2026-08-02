@@ -67,7 +67,7 @@
 <Card>
   {#snippet description()}
     <ul class="flex flex-col gap-2">
-      {#each headings as heading}
+      {#each headings as heading (heading.id)}
         <li
           class="heading border-teal-500 pl-2 text-zinc-500 transition-colors hover:text-zinc-900 dark:text-zinc-600 dark:hover:text-zinc-100"
           class:active={activeHeading === heading}
