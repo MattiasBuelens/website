@@ -16,7 +16,7 @@
     {post.title}
   {/snippet}
   {#snippet description()}
-    <div class="prose dark:prose-invert">
+    <div class="prose">
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
       {@html post.preview.html}
     </div>
