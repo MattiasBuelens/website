@@ -2,7 +2,7 @@
   import Card from './Card.svelte'
   import ArrowRightIcon from './ArrowRightIcon.svelte'
   import type { Snippet } from 'svelte'
-  import type { Post } from '$lib/data/posts'
+  import type { Post } from '#lib/data/posts.js'
   import { resolve } from '$app/paths'
 
   let { post, eyebrow: _eyebrow }: { post: Post; eyebrow: Snippet } = $props()

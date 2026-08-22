@@ -1,9 +1,9 @@
 <script lang="ts">
   import type { PageData } from './$types'
-  import { name } from '$lib/info'
-  import ArrowLeftIcon from '$lib/components/ArrowLeftIcon.svelte'
-  import ArrowRightIcon from '$lib/components/ArrowRightIcon.svelte'
-  import PostsList from '$lib/components/PostsList.svelte'
+  import { name } from '#lib/info.js'
+  import ArrowLeftIcon from '#lib/components/ArrowLeftIcon.svelte'
+  import ArrowRightIcon from '#lib/components/ArrowRightIcon.svelte'
+  import PostsList from '#lib/components/PostsList.svelte'
   import { resolve } from '$app/paths'
 
   let { data }: { data: PageData } = $props()

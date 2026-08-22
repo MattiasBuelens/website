@@ -1,4 +1,4 @@
-import { browser } from '$app/environment'
+import { browser } from '$app/env'
 import { render } from 'svelte/server'
 import { parse } from 'node-html-parser'
 import readingTime from 'reading-time'
@@ -52,6 +52,7 @@ export const posts: Post[] = Object.entries(
 )
   .map(([filepath, post]): SinglePost => {
     const body = parse(render(post.default).body)
+
     const preview = post.metadata.preview ? parse(post.metadata.preview) : body.querySelector('p')
 
     return {
@@ -79,10 +80,8 @@ export const posts: Post[] = Object.entries(
       // get estimated reading time for the post
       readingTime: readingTime(body.structuredText).text
     }
-  })
-  // sort by date
-  .sort((a, b) => b.date.getTime() - a.date.getTime())
-  // add references to the next/previous post
+  }) // sort by date
+  .sort((a, b) => b.date.getTime() - a.date.getTime()) // add references to the next/previous post
   .map((post, index, allPosts) => ({
     ...post,
     next: allPosts[index - 1],

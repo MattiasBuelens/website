@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { PageData } from './$types'
-  import { website, name, bio, avatar } from '$lib/info'
-  import ToC from '$lib/components/ToC.svelte'
-  import ArrowLeftIcon from '$lib/components/ArrowLeftIcon.svelte'
-  import SocialLinks from '$lib/components/SocialLinks.svelte'
+  import { website, name, bio, avatar } from '#lib/info.js'
+  import ToC from '#lib/components/ToC.svelte'
+  import ArrowLeftIcon from '#lib/components/ArrowLeftIcon.svelte'
+  import SocialLinks from '#lib/components/SocialLinks.svelte'
   import { resolve } from '$app/paths'
   import { afterNavigate } from '$app/navigation'
-  import PostDate from '$lib/components/PostDate.svelte'
+  import PostDate from '#lib/components/PostDate.svelte'
 
   let { data }: { data: PageData } = $props()
 
@@ -24,7 +24,10 @@
 
   // preserve posts navigation if we came from e.g. /posts/2
   let goBackPage: string | undefined = $state(undefined)
-  afterNavigate(({ from }) => {
+
+  afterNavigate(({ from, shallow }) => {
+    if (shallow) return
+
     if (from?.route.id === '/posts/[[page]]') {
       goBackPage = from.params!.page
     } else {
@@ -59,7 +62,7 @@
     <div class="sticky top-0 flex w-full justify-end pt-11 pr-8">
       <a
         class="group -top-1 -left-16 mb-8 hidden size-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md ring-1 shadow-zinc-800/5 ring-zinc-900/5 transition lg:flex dark:border dark:border-zinc-700/50 dark:bg-zinc-800 dark:ring-0 dark:ring-white/10 dark:hover:border-zinc-700 dark:hover:ring-white/20 dark:focus-visible:ring-2"
-        href={goBackPage ? resolve('/posts/[[page]]', { page: goBackPage }) : resolve('/posts')}
+        href={goBackPage ? resolve('/posts/[[page]]', { page: goBackPage }) : resolve('posts')}
         aria-label="Go back to posts"
       >
         <ArrowLeftIcon

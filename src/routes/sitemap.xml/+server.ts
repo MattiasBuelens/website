@@ -3,8 +3,8 @@
 // It is OK to delete this file if you'd rather not bother with it.
 
 import type { RequestHandler } from './$types'
-import { posts } from '$lib/data/posts'
-import { website } from '$lib/info'
+import { posts } from '#lib/data/posts.js'
+import { website } from '#lib/info.js'
 
 export const prerender = true
 

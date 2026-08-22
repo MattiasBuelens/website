@@ -23,9 +23,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@sveltejs/adapter-cloudflare": "^7.2.9",
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.2",
+    "@sveltejs/adapter-cloudflare": "next",
+    "@sveltejs/adapter-static": "next",
+    "@sveltejs/kit": "next",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vcarl/remark-headings": "^0.1.0",
@@ -43,7 +43,7 @@
     "rehype-slug": "^6.0.0",
     "remark-reading-time": "^2.1.0",
     "svelte": "^5.56.8",
-    "svelte-check": "^4.7.4",
+    "svelte-check": "^4.7.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.65.0",
@@ -54,5 +54,9 @@
     "heroicons-svelte": {
       "svelte": "^5.0.0"
     }
+  },
+  "imports": {
+    "#lib": "./src/lib/index.js",
+    "#lib/*": "./src/lib/*"
   }
 }

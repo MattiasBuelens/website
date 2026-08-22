@@ -3,9 +3,9 @@
   import '../prism.css'
   import type { Snippet } from 'svelte'
   import { MoonIcon, SunIcon } from 'heroicons-svelte/24/solid'
-  import { browser } from '$app/environment'
+  import { browser } from '$app/env'
   import { resolve } from '$app/paths'
-  import { name } from '$lib/info'
+  import { name } from '#lib/info.js'
   import { page } from '$app/state'
 
   let { children }: { children: Snippet } = $props()

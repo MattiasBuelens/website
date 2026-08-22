@@ -1,6 +1,6 @@
 import type { EntryGenerator, PageServerLoad } from './$types'
-import { posts } from '$lib/data/posts'
-import { countPages, paginate, rangeTo } from '$lib/util'
+import { posts } from '#lib/data/posts.js'
+import { countPages, paginate, rangeTo } from '#lib/util.js'
 import { error } from '@sveltejs/kit'
 
 const limit = 10

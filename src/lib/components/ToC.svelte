@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
+  import { browser } from '$app/env'
   import { onMount, onDestroy } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
   import Card from './Card.svelte'
-  import type { Post } from '$lib/data/posts'
+  import type { Post } from '#lib/data/posts.js'
 
   let { post }: { post: Post } = $props()
-
   let elements: HTMLElement[] = []
   let headings = $derived(post.headings)
   let observer: IntersectionObserver | undefined

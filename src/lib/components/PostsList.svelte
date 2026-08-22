@@ -1,7 +1,7 @@
 <script lang="ts">
-  import PostPreview from '$lib/components/PostPreview.svelte'
-  import PostDate from '$lib/components/PostDate.svelte'
-  import type { Post } from '$lib/data/posts'
+  import PostPreview from '#lib/components/PostPreview.svelte'
+  import PostDate from '#lib/components/PostDate.svelte'
+  import type { Post } from '#lib/data/posts.js'
 
   let { posts }: { posts: readonly Post[] } = $props()
 </script>

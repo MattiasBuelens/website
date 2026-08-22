@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { linkedin, instagram, bluesky, mastodon, twitter, github } from '$lib/info'
+  import { linkedin, instagram, bluesky, mastodon, twitter, github } from '#lib/info.js'
 </script>
 
 {#if github}

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { format } from 'date-fns'
   import { TZDateMini } from '@date-fns/tz'
-  import { timezone } from '$lib/info'
-  import type { Post } from '$lib/data/posts'
+  import { timezone } from '#lib/info.js'
+  import type { Post } from '#lib/data/posts.js'
 
   let {
     decorate,
