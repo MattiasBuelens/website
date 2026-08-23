@@ -259,9 +259,9 @@ class BabyVideoElement extends HTMLElement {
     if (this.#videoDecoder.state === "unconfigured") {
       this.#videoDecoder.configure(videoTrackBuffer.codecConfig);
     }
-    const chunk = videoTrackBuffer.findChunkForTime(this.currentTime);
-    if (chunk) {
-      this.#videoDecoder.decode(chunk);
+    const frame = videoTrackBuffer.findFrameForTime(this.currentTime);
+    if (frame) {
+      this.#videoDecoder.decode(frame);
     }
   }
 
@@ -314,12 +314,12 @@ for that same chunk again.
 ```js
 #onAnimationFrame() {
   // ...
-  const chunk = videoTrackBuffer.findChunkForTime(this.currentTime);
-  if (chunk === this.#lastDecodedChunk) {
+  const frame = videoTrackBuffer.findFrameForTime(this.currentTime);
+  if (frame === this.#lastDecodedFrame) {
     return;
   }
-  this.#videoDecoder.decode(chunk);
-  this.#lastDecodedChunk = chunk;
+  this.#videoDecoder.decode(frame);
+  this.#lastDecodedFrame = frame;
 }
 ```
 
@@ -348,22 +348,24 @@ To decode a frame after a seek, we first need to decode everything it (transitiv
 
 Either way, we decode (and hand to the `VideoDecoder`) every chunk along the way, but only the very
 last one actually gets drawn to the `<canvas>`. We generalize the double-decode fix from skipping
-_identical chunks_ to skipping _every chunk except the one we actually want to render_:
+_identical chunks_ to skipping _every chunk except the one we actually want to render_, and let
+`getDecodeDependenciesForFrame()` figure out the walk-back-to-a-keyframe logic for us:
 
 ```js
 #onAnimationFrame() {
   const videoTrackBuffer = getActiveVideoTrackBuffer(this.#mediaSource);
-  if (this.#videoDecoder.state === "unconfigured") {
-    this.#videoDecoder.configure(videoTrackBuffer.codecConfig);
-  }
-  const targetChunk = videoTrackBuffer.findChunkForTime(this.currentTime);
-  if (!targetChunk || targetChunk === this.#lastDecodedChunk) {
+  const targetFrame = videoTrackBuffer.findFrameForTime(this.currentTime);
+  if (!targetFrame || targetFrame === this.#lastDecodedFrame) {
     return;
   }
-  for (const chunk of videoTrackBuffer.findChunksToDecode(this.#lastDecodedChunk, targetChunk)) {
-    this.#videoDecoder.decode(chunk);
+  const decodeQueue = videoTrackBuffer.getDecodeDependenciesForFrame(targetFrame, this.#lastDecodedFrame);
+  if (this.#videoDecoder.state === "unconfigured") {
+    this.#videoDecoder.configure(decodeQueue.codecConfig);
   }
-  this.#lastDecodedChunk = targetChunk;
+  for (const frame of decodeQueue.frames) {
+    this.#videoDecoder.decode(frame);
+  }
+  this.#lastDecodedFrame = targetFrame;
 }
 ```
 
