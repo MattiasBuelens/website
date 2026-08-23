@@ -106,13 +106,28 @@ HTML tags backed by a JavaScript class. So the very first step is about as simpl
 
 ```js
 class BabyVideoElement extends HTMLElement {
-  // ...
+  #canvas;
+  #canvasContext;
+
+  constructor() {
+    super();
+    const shadowRoot = this.attachShadow({ mode: "open" });
+    this.#canvas = document.createElement("canvas");
+    this.#canvas.width = 300;
+    this.#canvas.height = 150;
+    shadowRoot.appendChild(this.#canvas);
+
+    this.#canvasContext = this.#canvas.getContext("2d");
+    this.#canvasContext.fillStyle = "black";
+    this.#canvasContext.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+  }
 }
 customElements.define("baby-video", BabyVideoElement);
 ```
 
-Inside, we drop in a `<canvas>` element to draw our decoded frames onto, since `<canvas>` is the
-closest thing the platform gives us to "a rectangle I can paint pixels into myself". At this point,
+We drop the `<canvas>` inside a shadow root, since `<canvas>` is the closest thing the platform gives
+us to "a rectangle I can paint pixels into myself", and a shadow root keeps its internals out of the
+page's own DOM, just like the real `<video>` element does. Fill it with black, and at this point,
 `<baby-video>` doesn't do anything useful yet, but you can already drop it into a page and get back...
 a black rectangle. The first baby steps of our `<baby-video>` element!
 
@@ -126,12 +141,17 @@ adding the components we want:
 
 ```html
 <media-controller>
-  <baby-video slot="media" src="..."></baby-video>
+  <baby-video slot="media"></baby-video>
   <media-control-bar>
     <media-play-button></media-play-button>
+    <media-time-display show-duration></media-time-display>
     <media-time-range></media-time-range>
+    <media-fullscreen-button></media-fullscreen-button>
   </media-control-bar>
 </media-controller>
+
+<script type="module" src="https://unpkg.com/media-chrome@0.12.0"></script>
+<script src="./baby-video.js"></script>
 ```
 
 Of course, none of these buttons do anything meaningful yet, because `<baby-video>` doesn't have any
@@ -171,8 +191,23 @@ too late or just never arrive at all.
 
 WebCodecs gives us decoders, but a decoder on its own doesn't know what to decode. We still need to
 get the actual video data into our element, in a shape it understands. For a real `<video>` element,
-you would use `appendBuffer()` on [MSE]'s `SourceBuffer`. So, just like we did for the `<video>` element
-itself, we'll have to build our own version of the MSE API.
+that's exactly what [MSE] is for, so, just like we did for the `<video>` element itself, we'll have
+to build our own version of the MSE API: a `BabyMediaSource` with its own `SourceBuffer`.
+
+```js
+const mediaSource = new BabyMediaSource();
+video.srcObject = mediaSource;
+await waitForEvent(mediaSource, "sourceopen");
+mediaSource.duration = 30;
+const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640028"');
+
+const segmentUrls = ["video_init.mp4", "video_1.mp4", "video_2.mp4"];
+for (const segmentUrl of segmentUrls) {
+  const segmentData = await (await fetch(segmentUrl)).arrayBuffer();
+  sourceBuffer.appendBuffer(segmentData);
+  await waitForEvent(sourceBuffer, "updateend");
+}
+```
 
 The video data itself typically arrives as fragmented MP4 (or CMAF), the same "chunks" that [hls.js],
 [dash.js] and other players would download from an HLS or DASH manifest. Rather than writing an MP4
@@ -185,16 +220,11 @@ A fragmented MP4 stream is generally made up of two kinds of pieces:
   a WebCodecs `VideoDecoder`.
 - One or more **media segments**, each containing a `moof`/`mdat` pair with the actual encoded samples.
   We turn each sample into an `EncodedVideoChunk`, WebCodecs' equivalent of a single encoded frame, and
-  store them inside our custom `SourceBuffer` class, keyed by their timestamp.
+  store them inside our `SourceBuffer`, keyed by their timestamp.
 
-```js
-const segment = await fetch(segmentUrl).then((res) => res.arrayBuffer());
-babyVideo.appendBuffer(segment);
-```
-
-With that, we've rebuilt the core of MSE's `appendBuffer()`: we can turn incoming MP4 segments into a growing
-list of `EncodedVideoChunk`s. Next up: actually decoding those chunks into frames and drawing those frames
-onto the screen.
+With that, our `SourceBuffer.appendBuffer()` implementation can turn incoming MP4 segments into a
+growing list of `EncodedVideoChunk`s, just by leaning on mp4box.js to do the parsing. Next up:
+actually decoding those chunks into frames and drawing those frames onto the screen.
 
 ## Decoding and rendering a frame
 
@@ -204,32 +234,45 @@ about: turning those chunks into actual pixels on screen.
 WebCodecs' `VideoDecoder` is refreshingly simple to use. You configure it once with the
 `VideoDecoderConfig` we extracted from the initialization segment, then feed it `EncodedVideoChunk`s
 one by one. For every chunk you feed in, the decoder eventually hands you back a `VideoFrame` through
-a callback:
+an `output` callback:
 
 ```js
-const decoder = new VideoDecoder({
-  output: (frame) => {
-    // draw `frame` somewhere, then frame.close()
-  },
-  error: (e) => console.error(e),
-});
-decoder.configure(videoDecoderConfig);
-decoder.decode(chunk);
+class BabyVideoElement extends HTMLElement {
+  #videoDecoder;
+
+  constructor() {
+    // ...
+    this.#videoDecoder = new VideoDecoder({
+      output: (frame) => this.#onVideoFrameDecoded(frame),
+      error: (error) => console.error(error),
+    });
+  }
+
+  #onAnimationFrame() {
+    const videoTrackBuffer = getActiveVideoTrackBuffer(this.#mediaSource);
+    if (this.#videoDecoder.state === "unconfigured") {
+      this.#videoDecoder.configure(videoTrackBuffer.codecConfig);
+    }
+    const chunk = videoTrackBuffer.findChunkForTime(this.currentTime);
+    if (chunk) {
+      this.#videoDecoder.decode(chunk);
+    }
+  }
+
+  #onVideoFrameDecoded(frame) {
+    this.#canvasContext.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight);
+    frame.close();
+  }
+}
 ```
 
-To know _which_ chunk to decode at any given moment, `<baby-video>` keeps a simple clock that advances
-in step with `currentTime`. On every animation frame, we look up the `EncodedVideoChunk` in our buffer
-that matches the clock's current position, and hand it to the decoder.
+`#onAnimationFrame()` is our clock: it runs once per rendered browser frame, driven by `currentTime`,
+looks up the `EncodedVideoChunk` in our buffer that matches that time, and hands it to the decoder.
 
 Rendering the resulting `VideoFrame` turned out to be the easiest part of the whole project: a
 `VideoFrame` is one of the types that [`CanvasRenderingContext2D.drawImage()`][drawImage] accepts
 directly, right alongside `<img>`, `<video>` and `ImageBitmap`. So once a frame comes out of the
-decoder, getting it onto the `<canvas>` is a single call:
-
-```js
-context.drawImage(frame, 0, 0);
-frame.close();
-```
+decoder, `#onVideoFrameDecoded()` can just draw it straight onto the `<canvas>` and close it again.
 
 Put the clock, the decoder and `drawImage()` together, and `<baby-video>` can already play a video
 end to end. When I pointed it at [Big Buck Bunny](https://peach.blender.org/) for the first real test,
@@ -259,13 +302,18 @@ reapplies that same motion and residual on top of a frame that's already been sh
 decoder's internal state, and repeated over dozens of frames, that corruption is exactly
 the smearing I was seeing on screen.
 
-The fix is simple: track which chunk was decoded last, and skip the call to `decoder.decode()`
-entirely if the render loop asks for that same chunk again.
+The fix is simple: track which chunk was decoded last, and bail out early if the render loop asks
+for that same chunk again.
 
 ```js
-if (chunk !== this.lastDecodedChunk) {
-  decoder.decode(chunk);
-  this.lastDecodedChunk = chunk;
+#onAnimationFrame() {
+  // ...
+  const chunk = videoTrackBuffer.findChunkForTime(this.currentTime);
+  if (chunk === this.#lastDecodedChunk) {
+    return;
+  }
+  this.#videoDecoder.decode(chunk);
+  this.#lastDecodedChunk = chunk;
 }
 ```
 
