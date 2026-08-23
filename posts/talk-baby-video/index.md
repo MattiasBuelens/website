@@ -170,8 +170,8 @@ battery-efficient playback across all devices, and that's VLC.js is still more o
 production-ready web-based streaming solution. [^1]
 
 [^1]:
-I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
-hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
+    I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
+    hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
 
 Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders.
 This means that you can build a JavaScript player with _full control_ over the precise time when each audio and video
