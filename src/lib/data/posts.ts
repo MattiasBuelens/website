@@ -48,7 +48,7 @@ export interface Post extends SinglePost {
 
 // Get all posts and add metadata
 export const posts: Post[] = Object.entries(
-  import.meta.glob<PostMarkdown>('/posts/**/*.md', { eager: true })
+  import.meta.glob<PostMarkdown>(['/posts/*.md', '/posts/*/index.md'], { eager: true })
 )
   .map(([filepath, post]): SinglePost => {
     const body = parse(render(post.default).body)
