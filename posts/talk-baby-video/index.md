@@ -382,6 +382,49 @@ DASH tend to recommend a keyframe roughly every two seconds: it's a deliberate t
 compression efficiency (fewer keyframes, which are expensive to encode) and how snappy seeking (and
 segment switching) feels to the viewer.
 
+## Managing the buffer
+
+So far, `<baby-video>` only ever grows its buffer: every appended segment adds more `EncodedVideoChunk`s
+that stick around forever. That's fine for a 30-second demo clip, but point this at a two-hour movie or
+a 24/7 livestream and it's only a matter of time before the tab runs out of memory and crashes. A real
+player needs to remove media it no longer needs, not just add more.
+
+MSE's `SourceBuffer` has a method for exactly this: `SourceBuffer.remove(start, end)`, which deletes
+every frame with a presentation time between `start` and `end`. The tricky part, once again, comes back
+to delta frames: if a frame we're about to remove is depended on by frames we're keeping, those
+dependent frames become undecodable too, so they have to go as well. In practice this usually means
+removing in whole groups of pictures: delete a keyframe, and every delta frame that leans on it (until
+the next keyframe) has to be deleted right along with it.
+
+```js
+class BabySourceBuffer extends EventTarget {
+  remove(start, end) {
+    // Removing a keyframe takes its whole GOP down with it,
+    // so round the removal range out to GOP boundaries first.
+    const { start: gopStart, end: gopEnd } = this.#alignToGroupOfPictures(start, end);
+    this.#chunks = this.#chunks.filter((chunk) => chunk.timestamp < gopStart || chunk.timestamp >= gopEnd);
+  }
+}
+```
+
+That leaves the question of *when* to call `remove()`. There are two triggers:
+
+- **Proactively**, before appending new data: while playing forward, chunks that are now well behind
+  `currentTime` are unlikely to be needed again, so we can remove them to make room. We have to
+  watch out for not removing too eagerly: if we remove the keyframe that the currently playing GOP
+  still depends on, we'd stall our own decoder. A safe rule of thumb is to never remove anything closer
+  than one keyframe interval to `currentTime`. The same idea applies in reverse when seeking backwards:
+  chunks that are now far *ahead* of `currentTime` can be proactively removed too.
+- **Reactively**, when the buffer fills up anyway: `SourceBuffer.appendBuffer()` throws a
+  `QuotaExceededError` if there simply isn't room for the new data, regardless of how proactive we were.
+  When that happens, the player should shrink its buffering goal (i.e. how far ahead it tries to buffer),
+  remove whatever it safely can, and retry the append: for example after playback has advanced enough
+  to free up some more room.
+
+With proactive and reactive eviction both in place, `<baby-video>` can finally buffer indefinitely
+without slowly eating all of the tab's memory. Old, unneeded chunks make way for new ones, and a full
+buffer degrades gracefully instead of just throwing an error at the player and giving up.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [drawImage]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 [Media Chrome]: https://www.media-chrome.org/
