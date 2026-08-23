@@ -94,36 +94,6 @@ own `<video>` element is doing, by trying to replicate it myself in JavaScript. 
 you can make inside the lower levels of a video player, choices over which you would usually not have control.
 And of course, any new experiment is a great excuse to try out some fancy new web APIs. 😄
 
-## WebCodecs to the rescue
-
-Until a few years ago, building a fully-fledged video player with smooth playback _without_ a `<video>` element
-would have been (nearly) impossible, although there are some exceptions.
-
-For example, [VLC.js] is a port of VLC media player compiled to WebAssembly, and renders to `<canvas>` (for video)
-and WebAudio (for audio). This is an amazing project and showcases the versatility of [their code](https://code.videolan.org/jbk/vlc.js).
-However, since _everything_ is done in software, VLC.js can't take advance of the hardware accelerated decoders that
-are generally already available in CPUs and GPUs. Hardware decoding is essential to achieve smooth and
-battery-efficient playback across all devices, and that's VLC.js is still more of an experiment rather than a
-production-ready web-based streaming solution. [^1]
-
-[^1]:
-    I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
-    hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
-
-Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders,
-This means that you can build a JavaScript player with _full control_ over the precise time when each audio and video
-frame should be decoded, when to render them, and what to do when frames are broken or missing.
-
-Importantly, these are the _same_ decoders that the browser uses for its own video decoding needs, so they can also
-be hardware accelerated! This is a game changer, since it's the first time we can directly tap into these on the web
-from JavaScript, without going through a `<video>` element.
-
-WebCodecs brings a lot of freedom but also a lot of responsibility. It's now up to the JavaScript player
-to guarantee smooth playback and to deal with mishaps such as corrupted frames, broken frames, or frames that arrive
-too late or just never arrive at all.
-
-<BaselineStatus featureId="webcodecs"></BaselineStatus>
-
 ## Put the "element" in "video element"
 
 Before we can decode a single frame, we need something to decode it _into_. The `<video>` element
@@ -166,6 +136,36 @@ adding the components we want:
 
 Of course, none of these buttons do anything meaningful yet, because `<baby-video>` doesn't have any
 video data to show, let alone the ability to decode and play it.
+
+## WebCodecs to the rescue
+
+Until a few years ago, building a fully-fledged video player with smooth playback _without_ a `<video>` element
+would have been (nearly) impossible, although there are some exceptions.
+
+For example, [VLC.js] is a port of VLC media player compiled to WebAssembly, and renders to `<canvas>` (for video)
+and WebAudio (for audio). This is an amazing project and showcases the versatility of [their code](https://code.videolan.org/jbk/vlc.js).
+However, since _everything_ is done in software, VLC.js can't take advance of the hardware accelerated decoders that
+are generally already available in CPUs and GPUs. Hardware decoding is essential to achieve smooth and
+battery-efficient playback across all devices, and that's VLC.js is still more of an experiment rather than a
+production-ready web-based streaming solution. [^1]
+
+[^1]:
+I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
+hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
+
+Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders,
+This means that you can build a JavaScript player with _full control_ over the precise time when each audio and video
+frame should be decoded, when to render them, and what to do when frames are broken or missing.
+
+Importantly, these are the _same_ decoders that the browser uses for its own video decoding needs, so they can also
+be hardware accelerated! This is a game changer, since it's the first time we can directly tap into these on the web
+from JavaScript, without going through a `<video>` element.
+
+WebCodecs brings a lot of freedom but also a lot of responsibility. It's now up to the JavaScript player
+to guarantee smooth playback and to deal with mishaps such as corrupted frames, broken frames, or frames that arrive
+too late or just never arrive at all.
+
+<BaselineStatus featureId="webcodecs"></BaselineStatus>
 
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [Media Chrome]: https://www.media-chrome.org/
