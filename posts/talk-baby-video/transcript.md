@@ -29,10 +29,10 @@ not be enough. We want to take control of the decoding
 on a much lower level there, to fine tune things even
 further.
 
-Also, because today we can actually do this *efficiently*:
+Also, because today we can actually do this _efficiently_:
 we've got the WebCodecs API in Chrome that allows you to
 interface directly with the hardware decoder. And their
-explainer even mentions that you *should* be able to
+explainer even mentions that you _should_ be able to
 build something like MSE on top of it. So to that I say:
 challenge accepted! Let's put the theory into practice.
 
@@ -47,7 +47,7 @@ Finally, this is a fun learning exercise. Some of the
 things that we take for granted from a video element are
 actually quite tricky when you actually try to make this
 yourself, so it should be interesting to do. Do note
-though: this *is* a toy implementation and like if you
+though: this _is_ a toy implementation and like if you
 have your kids playing with a toy kitchen, you wouldn't
 really want to eat whatever they cook up in there
 either. So don't do that.
@@ -119,7 +119,7 @@ What is actually going on in this demo? Well, the browser
 is rendering this at like 60 frames per second, but our
 video is 30 frames per second. So we're actually decoding
 every frame twice. That's not supposed to happen, because
-a frame depends on the *previous* frame, not on *itself*.
+a frame depends on the _previous_ frame, not on _itself_.
 So to fix that, we just add an extra check: if we've
 already decoded this frame, we don't decode it again and
 we just move on.

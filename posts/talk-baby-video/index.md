@@ -59,6 +59,7 @@ For videos on the web, everything starts with the [HTML `<video>` element](https
 This gives you a basic but fully functional player right inside your website or web app. Like so:
 
 <!-- svelte-ignore a11y_media_has_caption -->
+
 <video controls src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"></video>
 
 This is fine for short, simple videos. However, when video is a core part of your website's experience,
@@ -106,23 +107,23 @@ HTML tags backed by a JavaScript class. So the very first step is about as simpl
 
 ```js
 class BabyVideoElement extends HTMLElement {
-  #canvas;
-  #canvasContext;
+  #canvas
+  #canvasContext
 
   constructor() {
-    super();
-    const shadowRoot = this.attachShadow({ mode: "open" });
-    this.#canvas = document.createElement("canvas");
-    this.#canvas.width = 300;
-    this.#canvas.height = 150;
-    shadowRoot.appendChild(this.#canvas);
+    super()
+    const shadowRoot = this.attachShadow({ mode: 'open' })
+    this.#canvas = document.createElement('canvas')
+    this.#canvas.width = 300
+    this.#canvas.height = 150
+    shadowRoot.appendChild(this.#canvas)
 
-    this.#canvasContext = this.#canvas.getContext("2d");
-    this.#canvasContext.fillStyle = "black";
-    this.#canvasContext.fillRect(0, 0, this.#canvas.width, this.#canvas.height);
+    this.#canvasContext = this.#canvas.getContext('2d')
+    this.#canvasContext.fillStyle = 'black'
+    this.#canvasContext.fillRect(0, 0, this.#canvas.width, this.#canvas.height)
   }
 }
-customElements.define("baby-video", BabyVideoElement);
+customElements.define('baby-video', BabyVideoElement)
 ```
 
 We drop the `<canvas>` inside a shadow root, since `<canvas>` is the closest thing the platform gives
@@ -199,17 +200,17 @@ that's exactly what [MSE] is for, so, just like we did for the `<video>` element
 to build our own version of the MSE API: a `BabyMediaSource` with its own `SourceBuffer`.
 
 ```js
-const mediaSource = new BabyMediaSource();
-video.srcObject = mediaSource;
-await waitForEvent(mediaSource, "sourceopen");
-mediaSource.duration = 30;
-const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640028"');
+const mediaSource = new BabyMediaSource()
+video.srcObject = mediaSource
+await waitForEvent(mediaSource, 'sourceopen')
+mediaSource.duration = 30
+const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640028"')
 
-const segmentUrls = ["video_init.mp4", "video_1.mp4", "video_2.mp4"];
+const segmentUrls = ['video_init.mp4', 'video_1.mp4', 'video_2.mp4']
 for (const segmentUrl of segmentUrls) {
-  const segmentData = await (await fetch(segmentUrl)).arrayBuffer();
-  sourceBuffer.appendBuffer(segmentData);
-  await waitForEvent(sourceBuffer, "updateend");
+  const segmentData = await (await fetch(segmentUrl)).arrayBuffer()
+  sourceBuffer.appendBuffer(segmentData)
+  await waitForEvent(sourceBuffer, 'updateend')
 }
 ```
 
@@ -254,30 +255,30 @@ an `output` callback:
 
 ```js
 class BabyVideoElement extends HTMLElement {
-  #videoDecoder;
+  #videoDecoder
 
   constructor() {
     // ...
     this.#videoDecoder = new VideoDecoder({
       output: (frame) => this.#onVideoFrameDecoded(frame),
-      error: (error) => console.error(error),
-    });
+      error: (error) => console.error(error)
+    })
   }
 
   #onAnimationFrame() {
-    const videoTrackBuffer = getActiveVideoTrackBuffer(this.#mediaSource);
-    if (this.#videoDecoder.state === "unconfigured") {
-      this.#videoDecoder.configure(videoTrackBuffer.codecConfig);
+    const videoTrackBuffer = getActiveVideoTrackBuffer(this.#mediaSource)
+    if (this.#videoDecoder.state === 'unconfigured') {
+      this.#videoDecoder.configure(videoTrackBuffer.codecConfig)
     }
-    const frame = videoTrackBuffer.findFrameForTime(this.currentTime);
+    const frame = videoTrackBuffer.findFrameForTime(this.currentTime)
     if (frame) {
-      this.#videoDecoder.decode(frame);
+      this.#videoDecoder.decode(frame)
     }
   }
 
   #onVideoFrameDecoded(frame) {
-    this.#canvasContext.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight);
-    frame.close();
+    this.#canvasContext.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight)
+    frame.close()
   }
 }
 ```
@@ -311,7 +312,7 @@ as a _delta_ against the frame(s) before them, rather than encoding a full image
 pixel colors, a delta frame mostly describes which "macroblocks" (blocks of pixels) from the previous
 frame to keep in place, or move to a different position, plus a small residual to correct for whatever
 that motion compensation didn't quite capture. Those reconstructed macroblocks become part of the
-decoder's internal state, ready to be reused as the reference for the *next* delta frame.
+decoder's internal state, ready to be reused as the reference for the _next_ delta frame.
 
 Decode the same delta chunk twice, and the second decode doesn't just repeat the same picture, it
 reapplies that same motion and residual on top of a frame that's already been shifted once. This corrupts the
@@ -413,20 +414,22 @@ class BabySourceBuffer extends EventTarget {
   remove(start, end) {
     // Removing a keyframe takes its whole GOP down with it,
     // so round the removal range out to GOP boundaries first.
-    const { start: gopStart, end: gopEnd } = this.#alignToGroupOfPictures(start, end);
-    this.#chunks = this.#chunks.filter((chunk) => chunk.timestamp < gopStart || chunk.timestamp >= gopEnd);
+    const { start: gopStart, end: gopEnd } = this.#alignToGroupOfPictures(start, end)
+    this.#chunks = this.#chunks.filter(
+      (chunk) => chunk.timestamp < gopStart || chunk.timestamp >= gopEnd
+    )
   }
 }
 ```
 
-That leaves the question of *when* to call `remove()`. There are two triggers:
+That leaves the question of _when_ to call `remove()`. There are two triggers:
 
 - **Proactively**, before appending new data: while playing forward, chunks that are now well behind
   `currentTime` are unlikely to be needed again, so we can remove them to make room. We have to
   watch out for not removing too eagerly: if we remove the keyframe that the currently playing GOP
   still depends on, we'd stall our own decoder. A safe rule of thumb is to never remove anything closer
   than one keyframe interval to `currentTime`. The same idea applies in reverse when seeking backwards:
-  chunks that are now far *ahead* of `currentTime` can be proactively removed too.
+  chunks that are now far _ahead_ of `currentTime` can be proactively removed too.
 - **Reactively**, when the buffer fills up anyway: `SourceBuffer.appendBuffer()` throws a
   `QuotaExceededError` if there simply isn't room for the new data, regardless of how proactive we were.
   When that happens, the player should shrink its buffering goal (i.e. how far ahead it tries to buffer),
@@ -443,7 +446,7 @@ A player that only ever plays a single, fixed quality isn't very useful on a rea
 picks something safe and blurry, or something sharp that stalls the moment your connection dips. Real
 streaming players constantly re-evaluate which quality to buffer next, based on bandwidth, device
 capabilities, and how full the buffer already is. `<baby-video>` doesn't implement that decision logic
-itself, but it does need to cope with the *result* of that decision: a stream of segments that can
+itself, but it does need to cope with the _result_ of that decision: a stream of segments that can
 switch from, say, 480p to 720p from one segment to the next.
 
 The easy part is the decoder itself. Each quality has its own `VideoDecoderConfig`, so switching quality
@@ -465,7 +468,7 @@ the codec config for the next chunk differs from the last one it configured:
 }
 ```
 
-The harder part is what happens *in the buffer* when a quality switch is appended. Different renditions
+The harder part is what happens _in the buffer_ when a quality switch is appended. Different renditions
 of the same video don't always cut their segments at exactly the same timestamps: one quality's
 segments might be 4 seconds each, while another's are 6 seconds. So when the player decides to switch
 quality, the new segment it appends can straddle the boundary of a segment that's already sitting in
@@ -514,12 +517,12 @@ if you want to poke around.
 The biggest lesson for me was just how much nuance is hiding behind "decode the next frame". Every
 single piece of this project, from the very first render loop to the last quality switch, ran into some
 version of the same underlying fact: compressed video isn't a flat sequence of pictures, it's a sequence
-of *instructions* for reconstructing pictures, and most of those instructions only make sense in the
+of _instructions_ for reconstructing pictures, and most of those instructions only make sense in the
 context of the ones before them. The `<video>` element hides all of that from you, and it's only once
 you try to rebuild it yourself that you notice how much careful bookkeeping is going on underneath.
 
-The other big lesson: a video player's job isn't just decoding, it's *deciding what not to decode*, and
-*deciding what to throw away*. Skipping identical chunks, walking back to a keyframe instead of
+The other big lesson: a video player's job isn't just decoding, it's _deciding what not to decode_, and
+_deciding what to throw away_. Skipping identical chunks, walking back to a keyframe instead of
 decoding everything from the start, evicting old GOPs before the buffer fills up, avoiding a quality
 switch too close to `currentTime`: none of that shows up if you only think about the happy path, and
 all of it turned out to matter.
