@@ -10,6 +10,7 @@ You can watch the talk below, and read along for (much) more details about why a
 import Video from "#lib/components/Video.svelte";
 import Iframe from "#lib/components/Iframe.svelte";
 import BaselineStatus from "#lib/components/BaselineStatus.svelte";
+import Transcript from "./transcript.md";
 </script>
 
 ## Watch the talk
@@ -41,6 +42,11 @@ title="Slides"></Iframe>
 </figcaption>
 
 </figure>
+
+<details>
+<summary>Transcript</summary>
+<Transcript />
+</details>
 
 ## Motivation
 
