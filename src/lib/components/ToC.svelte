@@ -1,65 +1,111 @@
 <script lang="ts">
-  import { browser } from '$app/env'
-  import { onMount, onDestroy } from 'svelte'
-  import { SvelteSet } from 'svelte/reactivity'
+  import { onDestroy } from 'svelte'
   import Card from './Card.svelte'
   import type { Post } from '#lib/data/posts.js'
 
-  let { post }: { post: Post } = $props()
-  let elements: HTMLElement[] = []
+  let { post, contentEnd }: { post: Post; contentEnd?: HTMLElement } = $props()
   let headings = $derived(post.headings)
-  let observer: IntersectionObserver | undefined
 
-  onMount(() => {
-    if (typeof IntersectionObserver !== 'undefined') {
-      observer = new IntersectionObserver(updateVisibleHeadings)
-    }
-    updateHeadings()
-    updateVisibleHeadings([])
-  })
+  // A heading becomes active once it passes this point in the viewport, given as
+  // a fraction of the viewport height. A heading above that line means we're
+  // reading its section, so we don't need to observe the sections themselves.
+  const activationPoint = 0.15
 
-  onDestroy(() => {
-    observer?.disconnect()
-  })
+  // Observers only tell us *when* to recompute, never *what* is active: an
+  // observer can miss a crossing entirely when a heading moves past its root
+  // between two frames, so accumulating state from the entries alone goes stale.
+  // The line observer catches headings crossing the activation line.
+  const lineRootMargin = `0px 0px -${(1 - activationPoint) * 100}% 0px`
 
-  let visibleHeadings = new SvelteSet<Element>()
+  // The nearby observer only exists to notice large jumps that skipped the line
+  // entirely. Its root is the viewport grown by a full viewport in each
+  // direction, so skipping it would take a jump of more than three viewports.
+  const nearbyRootMargin = '100% 0px'
+
+  // not reactive on purpose: read and written by the observer callbacks
+  let elements: HTMLElement[] = []
+  let atContentEnd = false
+
+  let lineObserver: IntersectionObserver | undefined
+  let nearbyObserver: IntersectionObserver | undefined
+  let endObserver: IntersectionObserver | undefined
+
   let activeHeadingIndex = $state(0)
   let activeHeading = $derived(headings[activeHeadingIndex])
 
-  function updateHeadings() {
-    if (browser) {
-      for (const element of elements) {
-        observer?.unobserve(element)
-      }
-      elements = headings.map((heading) => {
-        return document.getElementById(heading.id)!
-      })
-      for (const element of elements) {
-        observer?.observe(element)
-      }
+  $effect(() => {
+    lineObserver?.disconnect()
+    nearbyObserver?.disconnect()
+    lineObserver = new IntersectionObserver(updateActiveHeading, { rootMargin: lineRootMargin })
+    nearbyObserver = new IntersectionObserver(updateActiveHeading, { rootMargin: nearbyRootMargin })
+
+    elements = headings
+      .map((heading) => document.getElementById(heading.id))
+      .filter((element) => element !== null)
+
+    for (const element of elements) {
+      lineObserver.observe(element)
+      nearbyObserver.observe(element)
     }
+
+    updateActiveHeading()
+  })
+
+  $effect(() => {
+    endObserver?.disconnect()
+    if (!contentEnd) return
+
+    endObserver = new IntersectionObserver(onContentEndVisible)
+    endObserver.observe(contentEnd)
+  })
+
+  $effect(() => {
+    // resizing moves the activation line without necessarily crossing a heading,
+    // so no observer would fire on its own
+    window.addEventListener('resize', updateActiveHeading)
+    // a jump too large even for the nearby observer (dragging the scrollbar, or
+    // following a link to a heading) crosses nothing on its way. these fire once
+    // per gesture, not once per frame, so they cost nothing while scrolling
+    window.addEventListener('scrollend', updateActiveHeading)
+    window.addEventListener('hashchange', updateActiveHeading)
+    return () => {
+      window.removeEventListener('resize', updateActiveHeading)
+      window.removeEventListener('scrollend', updateActiveHeading)
+      window.removeEventListener('hashchange', updateActiveHeading)
+    }
+  })
+
+  onDestroy(() => {
+    lineObserver?.disconnect()
+    nearbyObserver?.disconnect()
+    endObserver?.disconnect()
+  })
+
+  function onContentEndVisible(entries: IntersectionObserverEntry[]) {
+    for (const entry of entries) {
+      atContentEnd = entry.isIntersecting
+    }
+    updateActiveHeading()
   }
 
-  function updateVisibleHeadings(entries: readonly IntersectionObserverEntry[]) {
-    for (const entry of entries) {
-      if (entry.isIntersecting) {
-        visibleHeadings.add(entry.target)
-      } else {
-        visibleHeadings.delete(entry.target)
-      }
+  function updateActiveHeading() {
+    if (elements.length === 0) return
+
+    // once the end of the post is on screen we're in the final section, even if
+    // it's too short for its heading to ever reach the activation line
+    if (atContentEnd) {
+      activeHeadingIndex = elements.length - 1
+      return
     }
 
-    activeHeadingIndex = elements.findIndex((element) => visibleHeadings.has(element))
-    if (activeHeadingIndex < 0) {
-      const pageHeight = document.body.scrollHeight
-      const scrollProgress = (window.scrollY + window.innerHeight) / pageHeight
-
-      if (scrollProgress > 0.5) {
-        activeHeadingIndex = headings.length - 1
-      } else {
-        activeHeadingIndex = 0
-      }
+    // the last heading past the line, or the first one while we're above it
+    const line = window.innerHeight * activationPoint
+    let index = 0
+    for (let i = 0; i < elements.length; i++) {
+      if (elements[i].getBoundingClientRect().top > line) break
+      index = i
     }
+    activeHeadingIndex = index
   }
 </script>
 

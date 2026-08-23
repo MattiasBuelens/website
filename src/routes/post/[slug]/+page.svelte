@@ -22,6 +22,9 @@
 
   const url = $derived(`${website}/${data.post.slug}`)
 
+  // marks the end of the post, so the ToC can activate its last entry
+  let contentEnd: HTMLElement | undefined = $state()
+
   // preserve posts navigation if we came from e.g. /posts/2
   let goBackPage: string | undefined = $state(undefined)
 
@@ -87,6 +90,7 @@
       <div class="prose">
         <data.component />
       </div>
+      <div bind:this={contentEnd} aria-hidden="true"></div>
     </article>
 
     <!-- bio -->
@@ -115,7 +119,7 @@
   <!-- table of contents -->
   <div class="hidden pt-10 xl:block">
     <aside class="sticky top-8 ml-8 hidden w-48 xl:block" aria-label="Table of Contents">
-      <ToC post={data.post} />
+      <ToC post={data.post} {contentEnd} />
     </aside>
   </div>
 </div>
