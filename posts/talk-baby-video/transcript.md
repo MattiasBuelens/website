@@ -37,7 +37,7 @@ build something like MSE on top of it. So to that I say:
 challenge accepted! Let's put the theory into practice.
 
 And we can try to make this into a running theme here at
-Demuxed: last year Colin Miller replaced ffmpeg with
+Demuxed: last year Collin Miller replaced ffmpeg with
 WebCodecs, today I'll replace the video element with
 WebCodecs, so maybe next year someone can - I don't know -
 replace smell-o-vision with WebCodecs? Submit a talk, I

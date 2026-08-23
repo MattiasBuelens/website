@@ -187,6 +187,10 @@ too late or just never arrive at all.
 
 <BaselineStatus featureId="webcodecs"></BaselineStatus>
 
+Replacing pieces of the video pipeline with WebCodecs was becoming something of a running theme at Demuxed:
+the year before this talk, [Collin Miller replaced ffmpeg with WebCodecs](https://www.youtube.com/watch?v=zvsF6ZTYl0Y).
+This time, it's the `<video>` element's turn.
+
 ## Feeding it data
 
 WebCodecs gives us decoders, but a decoder on its own doesn't know what to decode. We still need to
