@@ -226,7 +226,17 @@ A fragmented MP4 stream is generally made up of two kinds of pieces:
   We turn each sample into an `EncodedVideoChunk`, WebCodecs' equivalent of a single encoded frame, and
   store them inside our `SourceBuffer`, keyed by their timestamp.
 
-![Hand-drawn diagram showing an fMP4 file getting parsed by mp4box.js, from which we extract track info and frames.](./appendBuffer.png)
+<figure>
+
+![Diagram of mp4box.js parsing a fragmented MP4 file into track info and encoded frames.](./appendBuffer.png)
+
+<figcaption>
+
+mp4box.js turns an fMP4 file into track info (for the `VideoDecoderConfig`) and a series of frames (for the `EncodedVideoChunk`s).
+
+</figcaption>
+
+</figure>
 
 With that, our `SourceBuffer.appendBuffer()` implementation can turn incoming MP4 segments into a
 growing list of `EncodedVideoChunk`s, just by leaning on mp4box.js to do the parsing. Next up:
@@ -473,7 +483,11 @@ or glitch we saw with the double-decode bug and with seeking.
 
 ![Diagram of a quality switch from 480p to 720p, showing the buffer's last 480p segment getting cut short because the segment durations don't line up.](./quality-switching.svg)
 
-<figcaption>Switching from 480p to 720p when segment durations don't line up: the last buffered 480p segment gets cut short to make room for the new 720p segment.</figcaption>
+<figcaption>
+
+Switching from 480p to 720p when segment durations don't line up: the last buffered 480p segment gets cut short to make room for the new 720p segment.
+
+</figcaption>
 
 </figure>
 
