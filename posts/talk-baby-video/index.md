@@ -226,6 +226,8 @@ A fragmented MP4 stream is generally made up of two kinds of pieces:
   We turn each sample into an `EncodedVideoChunk`, WebCodecs' equivalent of a single encoded frame, and
   store them inside our `SourceBuffer`, keyed by their timestamp.
 
+![Hand-drawn diagram showing an fMP4 file getting parsed by mp4box.js, from which we extract track info and frames.](./appendBuffer.png)
+
 With that, our `SourceBuffer.appendBuffer()` implementation can turn incoming MP4 segments into a
 growing list of `EncodedVideoChunk`s, just by leaning on mp4box.js to do the parsing. Next up:
 actually decoding those chunks into frames and drawing those frames onto the screen.
