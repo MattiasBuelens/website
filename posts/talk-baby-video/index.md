@@ -139,12 +139,12 @@ video data to show, let alone the ability to decode and play it.
 
 ## WebCodecs to the rescue
 
-Until a few years ago, building a fully-fledged video player with smooth playback _without_ a `<video>` element
-would have been (nearly) impossible, although there are some exceptions.
+So how do we actually render video data as pixels into our `<canvas>`? Until a few years ago, that would have been
+(nearly) impossible _without_ a `<video>` element, although there are some exceptions.
 
 For example, [VLC.js] is a port of VLC media player compiled to WebAssembly, and renders to `<canvas>` (for video)
 and WebAudio (for audio). This is an amazing project and showcases the versatility of [their code](https://code.videolan.org/jbk/vlc.js).
-However, since _everything_ is done in software, VLC.js can't take advance of the hardware accelerated decoders that
+However, since _everything_ is done in software, VLC.js can't take advantage of the hardware accelerated decoders that
 are generally already available in CPUs and GPUs. Hardware decoding is essential to achieve smooth and
 battery-efficient playback across all devices, and that's VLC.js is still more of an experiment rather than a
 production-ready web-based streaming solution. [^1]
@@ -153,7 +153,7 @@ production-ready web-based streaming solution. [^1]
 I'd love to be proven wrong about this! Perhaps in the future, VLC.js could integrate with WebCodecs to tap into
 hardware accelerated decoding on the web, and become a viable option as a streaming solution on the web?
 
-Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders,
+Fortunately, we now have the [WebCodecs] API. WebCodecs allows JavaScript to talk directly with audio and video decoders.
 This means that you can build a JavaScript player with _full control_ over the precise time when each audio and video
 frame should be decoded, when to render them, and what to do when frames are broken or missing.
 
@@ -167,6 +167,35 @@ too late or just never arrive at all.
 
 <BaselineStatus featureId="webcodecs"></BaselineStatus>
 
+## Feeding it data
+
+WebCodecs gives us decoders, but a decoder on its own doesn't know what to decode. We still need to
+get the actual video data into our element, in a shape it understands. For a real `<video>` element,
+you would use `appendBuffer()` on [MSE]'s `SourceBuffer`. So, just like we did for the `<video>` element
+itself, we'll have to build our own version of the MSE API.
+
+The video data itself typically arrives as fragmented MP4 (or CMAF), the same "chunks" that [hls.js],
+[dash.js] and other players would download from an HLS or DASH manifest. Rather than writing an MP4
+parser from scratch, I used [mp4box.js], a battle-tested JavaScript library that parses MP4's box structure.
+
+A fragmented MP4 stream is generally made up of two kinds of pieces:
+
+- An **initialization segment**, containing a `moov` box with track and codec information. We parse
+  this once up front, and turn it into a `VideoDecoderConfig` object such that we can use it to configure
+  a WebCodecs `VideoDecoder`.
+- One or more **media segments**, each containing a `moof`/`mdat` pair with the actual encoded samples.
+  We turn each sample into an `EncodedVideoChunk`, WebCodecs' equivalent of a single encoded frame, and
+  store them inside our custom `SourceBuffer` class, keyed by their timestamp.
+
+```js
+const segment = await fetch(segmentUrl).then((res) => res.arrayBuffer());
+babyVideo.appendBuffer(segment);
+```
+
+With that, we've rebuilt the core of MSE's `appendBuffer()`: we can turn incoming MP4 segments into a growing
+list of `EncodedVideoChunk`s. Next up: actually decoding those chunks into frames and drawing those frames
+onto the screen.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [Media Chrome]: https://www.media-chrome.org/
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
@@ -177,3 +206,4 @@ too late or just never arrive at all.
 [THEOplayer]: https://www.theoplayer.com/
 [MPEG-TS]: https://en.wikipedia.org/wiki/MPEG_transport_stream
 [VLC.js]: https://videolabs.io/communication/vlcjs-demo/vlc.html
+[mp4box.js]: https://github.com/gpac/mp4box.js/
