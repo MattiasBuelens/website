@@ -323,6 +323,63 @@ for that same chunk again.
 
 With that check in place, Big Buck Bunny finally played _as the Blender Foundation intended_.
 
+## Seeking should just work, right?
+
+Playback was looking good, so surely seeking (i.e. jumping forward or backward in time through the video) would
+just work too? After all, `#onAnimationFrame()` already looks up "the chunk for `currentTime`" on every
+frame, and the seek bar simply updates `currentTime` directly instead of letting it progress naturally.
+I dragged the seek bar back to the start, expecting to see the familiar opening shot of Big Buck Bunny again.
+
+Instead: a blocky, garbled mess. Again. 🙄
+
+The problem, once again, comes back to how compressed video actually works. As covered [earlier][picture-types],
+most frames are delta frames that only make sense relative to the frames before them. Landing on a delta
+frame right after a seek and decoding _just that one chunk_ is exactly as broken as decoding it a second
+time was: the decoder is missing the internal state that the delta frame is expecting.
+
+To decode a frame after a seek, we first need to decode everything it (transitively) depends on:
+
+- If the seek landed in the same group of pictures ("GOP") we were already decoding, we can resume from
+  wherever we left off: we decode everything between the last decoded chunk and the new one.
+- If it landed in a different group of pictures, there's no state to resume from. We have to start
+  over from that group's keyframe and decode our way forward to the target chunk.
+
+Either way, we decode (and hand to the `VideoDecoder`) every chunk along the way, but only the very
+last one actually gets drawn to the `<canvas>`. We generalize the double-decode fix from skipping
+_identical chunks_ to skipping _every chunk except the one we actually want to render_:
+
+```js
+#onAnimationFrame() {
+  const videoTrackBuffer = getActiveVideoTrackBuffer(this.#mediaSource);
+  if (this.#videoDecoder.state === "unconfigured") {
+    this.#videoDecoder.configure(videoTrackBuffer.codecConfig);
+  }
+  const targetChunk = videoTrackBuffer.findChunkForTime(this.currentTime);
+  if (!targetChunk || targetChunk === this.#lastDecodedChunk) {
+    return;
+  }
+  for (const chunk of videoTrackBuffer.findChunksToDecode(this.#lastDecodedChunk, targetChunk)) {
+    this.#videoDecoder.decode(chunk);
+  }
+  this.#lastDecodedChunk = targetChunk;
+}
+```
+
+As a nice side effect, this same "decode everything since the last chunk" logic also cleans up a case
+we'd been quietly ignoring: what happens when the _display_ frame rate is lower than the _video_ frame
+rate, so more than one encoded frame falls between two consecutive animation frames? Turns out it's the
+same problem as seeking, just over a much shorter distance, and it's fixed by the same code.
+
+With that in place, seeking finally landed back on the actual opening shot of Big Buck Bunny.
+The glitchy mess was gone.
+
+There is a real cost to this though: the further a delta frame sits from its nearest keyframe, the more
+frames a seek has to decode before it can show anything at all. Fewer keyframes means more frame
+dependencies, which means slower seeking. That's one of the reasons why streaming formats like HLS and
+DASH tend to recommend a keyframe roughly every two seconds: it's a deliberate trade-off between
+compression efficiency (fewer keyframes, which are expensive to encode) and how snappy seeking (and
+segment switching) feels to the viewer.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [drawImage]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 [Media Chrome]: https://www.media-chrome.org/
