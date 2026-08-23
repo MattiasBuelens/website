@@ -196,7 +196,48 @@ With that, we've rebuilt the core of MSE's `appendBuffer()`: we can turn incomin
 list of `EncodedVideoChunk`s. Next up: actually decoding those chunks into frames and drawing those frames
 onto the screen.
 
+## Decoding and rendering a frame
+
+With a buffer full of `EncodedVideoChunk`s, we finally get to the part that this whole exercise was
+about: turning those chunks into actual pixels on screen.
+
+WebCodecs' `VideoDecoder` is refreshingly simple to use. You configure it once with the
+`VideoDecoderConfig` we extracted from the initialization segment, then feed it `EncodedVideoChunk`s
+one by one. For every chunk you feed in, the decoder eventually hands you back a `VideoFrame` through
+a callback:
+
+```js
+const decoder = new VideoDecoder({
+  output: (frame) => {
+    // draw `frame` somewhere, then frame.close()
+  },
+  error: (e) => console.error(e),
+});
+decoder.configure(videoDecoderConfig);
+decoder.decode(chunk);
+```
+
+To know _which_ chunk to decode at any given moment, `<baby-video>` keeps a simple clock that advances
+in step with `currentTime`. On every animation frame, we look up the `EncodedVideoChunk` in our buffer
+that matches the clock's current position, and hand it to the decoder.
+
+Rendering the resulting `VideoFrame` turned out to be the easiest part of the whole project: a
+`VideoFrame` is one of the types that [`CanvasRenderingContext2D.drawImage()`][drawImage] accepts
+directly, right alongside `<img>`, `<video>` and `ImageBitmap`. So once a frame comes out of the
+decoder, getting it onto the `<canvas>` is a single call:
+
+```js
+context.drawImage(frame, 0, 0);
+frame.close();
+```
+
+Put the clock, the decoder and `drawImage()` together, and `<baby-video>` can already play a video
+end to end. When I pointed it at [Big Buck Bunny](https://peach.blender.org/) for the first real test,
+it mostly worked, except the picture was smearing and stuttering in a way the original never does.
+Turns out that getting individual frames on screen is the easy part, the difficult part was yet to come.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
+[drawImage]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 [Media Chrome]: https://www.media-chrome.org/
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
 [MSE]: https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API
