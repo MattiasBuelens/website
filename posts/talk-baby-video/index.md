@@ -236,6 +236,41 @@ end to end. When I pointed it at [Big Buck Bunny](https://peach.blender.org/) fo
 it mostly worked, except the picture was smearing and stuttering in a way the original never does.
 Turns out that getting individual frames on screen is the easy part, the difficult part was yet to come.
 
+## The double-decode bug
+
+The smearing turned out to have a simple cause, once I tracked it down: a mismatch between two frame
+rates that I had been treating as the same thing.
+
+The browser calls our render loop once per _display_ refresh, typically 60 times per second. The Big Buck
+Bunny test video I was using, however, is encoded at 30 frames per second. My clock-driven lookup was blindly
+grabbing "the chunk for the current time" on every single call, so for roughly half of those 60 calls
+per second it would hand the _same_ `EncodedVideoChunk` to the decoder twice in a row.
+
+That's harmless for an independently decodable frame, but most frames in a compressed video aren't
+independent at all. Video codecs achieve their compression ratios by encoding most [frames][picture-types]
+as a _delta_ against the frame(s) before them, rather than encoding a full image every time: instead of
+pixel colors, a delta frame mostly describes which "macroblocks" (blocks of pixels) from the previous
+frame to keep in place, or move to a different position, plus a small residual to correct for whatever
+that motion compensation didn't quite capture. Those reconstructed macroblocks become part of the
+decoder's internal state, ready to be reused as the reference for the *next* delta frame.
+
+Decode the same delta chunk twice, and the second decode doesn't just repeat the same picture, it
+reapplies that same motion and residual on top of a frame that's already been shifted once. This corrupts the
+decoder's internal state, and repeated over dozens of frames, that corruption is exactly
+the smearing I was seeing on screen.
+
+The fix is simple: track which chunk was decoded last, and skip the call to `decoder.decode()`
+entirely if the render loop asks for that same chunk again.
+
+```js
+if (chunk !== this.lastDecodedChunk) {
+  decoder.decode(chunk);
+  this.lastDecodedChunk = chunk;
+}
+```
+
+With that check in place, Big Buck Bunny finally played _as the Blender Foundation intended_.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [drawImage]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 [Media Chrome]: https://www.media-chrome.org/
@@ -248,3 +283,4 @@ Turns out that getting individual frames on screen is the easy part, the difficu
 [MPEG-TS]: https://en.wikipedia.org/wiki/MPEG_transport_stream
 [VLC.js]: https://videolabs.io/communication/vlcjs-demo/vlc.html
 [mp4box.js]: https://github.com/gpac/mp4box.js/
+[picture-types]: https://en.wikipedia.org/wiki/Video_compression_picture_types
