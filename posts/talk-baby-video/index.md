@@ -1,6 +1,6 @@
 ---
 title: "Talk: Baby's first HTML5 <video> element"
-date: 2024-12-30T16:00:00+01:00
+date: 2026-08-23T18:30:00+02:00
 ---
 
 At [Demuxed 2022](https://2022.demuxed.com/), I presented a talk about how I re-built the HTML5 `<video>` element using [Custom Elements] and [WebCodecs].
