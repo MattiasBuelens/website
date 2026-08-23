@@ -1,0 +1,61 @@
+<svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+  <style>
+    .label { font-size: 18px; fill: #000; text-anchor: end; }
+    .seg-label { font-size: 18px; fill: #fff; text-anchor: middle; dominant-baseline: middle; }
+    .orange { fill: #F57E20; stroke: #9F5900; stroke-width: 2; }
+    .green { fill: #6CBE45; stroke: #4C852F; stroke-width: 2; }
+    .divider { stroke: rgba(0,0,0,0.25); stroke-width: 1; }
+
+    @media (prefers-color-scheme: dark) {
+      .label { fill: #fff; }
+      .divider { stroke: rgba(255,255,255,0.35); }
+    }
+  </style>
+
+  <!-- Row 1: 480p quality (3 equal segments) -->
+  <text class="label" x="160" y="71">480p quality:</text>
+  <rect class="orange" x="170" y="40" width="182" height="50"/>
+  <rect class="orange" x="352" y="40" width="181" height="50"/>
+  <rect class="orange" x="533" y="40" width="181" height="50"/>
+  <line class="divider" x1="352" y1="40" x2="352" y2="90"/>
+  <line class="divider" x1="533" y1="40" x2="533" y2="90"/>
+  <text class="seg-label" x="261" y="66">#1</text>
+  <text class="seg-label" x="442" y="66">#2</text>
+  <text class="seg-label" x="623" y="66">#3</text>
+
+  <!-- Row 2: 720p quality (4 equal segments) -->
+  <text class="label" x="160" y="135">720p quality:</text>
+  <rect class="green" x="170" y="104" width="143" height="50"/>
+  <rect class="green" x="313" y="104" width="141.5" height="50"/>
+  <rect class="green" x="454.5" y="104" width="141.5" height="50"/>
+  <rect class="green" x="596" y="104" width="142" height="50"/>
+  <line class="divider" x1="313" y1="104" x2="313" y2="154"/>
+  <line class="divider" x1="454.5" y1="104" x2="454.5" y2="154"/>
+  <line class="divider" x1="596" y1="104" x2="596" y2="154"/>
+  <text class="seg-label" x="241.5" y="130">#1</text>
+  <text class="seg-label" x="383.5" y="130">#2</text>
+  <text class="seg-label" x="525" y="130">#3</text>
+  <text class="seg-label" x="667" y="130">#4</text>
+
+  <!-- Row 3: Buffer before switching -->
+  <text class="label" x="160" y="199">Buffer before:</text>
+  <rect class="orange" x="170" y="168" width="182" height="50"/>
+  <rect class="orange" x="352" y="168" width="181" height="50"/>
+  <line class="divider" x1="352" y1="168" x2="352" y2="218"/>
+  <text class="seg-label" x="261" y="194">#1</text>
+  <text class="seg-label" x="442" y="194">#2</text>
+
+  <!-- Row 4: Buffer after switching (mixed segments) -->
+  <text class="label" x="160" y="263">Buffer after:</text>
+  <rect class="orange" x="170" y="232" width="182" height="50"/>
+  <rect class="orange" x="352" y="232" width="102.5" height="50"/>
+  <rect class="green" x="454.5" y="232" width="141.5" height="50"/>
+  <rect class="green" x="596" y="232" width="142" height="50"/>
+  <line class="divider" x1="352" y1="232" x2="352" y2="282"/>
+  <line class="divider" x1="454.5" y1="232" x2="454.5" y2="282"/>
+  <line class="divider" x1="596" y1="232" x2="596" y2="282"/>
+  <text class="seg-label" x="261" y="258">#1</text>
+  <text class="seg-label" x="403" y="258">#2</text>
+  <text class="seg-label" x="525" y="258">#3</text>
+  <text class="seg-label" x="667" y="258">#4</text>
+</svg>

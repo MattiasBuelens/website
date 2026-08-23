@@ -469,6 +469,14 @@ one notices. But if `currentTime` is already inside that second segment when the
 effectively pulled the rug out from under the decoder mid-GOP, which risks the exact same kind of stall
 or glitch we saw with the double-decode bug and with seeking.
 
+<figure>
+
+![Diagram of a quality switch from 480p to 720p, showing the buffer's last 480p segment getting cut short because the segment durations don't line up.](./quality-switching.svg)
+
+<figcaption>Switching from 480p to 720p when segment durations don't line up: the last buffered 480p segment gets cut short to make room for the new 720p segment.</figcaption>
+
+</figure>
+
 So, just like with buffer eviction, the player should try to avoid switching quality too close to
 `currentTime`, giving itself a safety margin before the switch actually reaches the decoder. That's not
 always possible, though: if the buffer is nearly empty because playback is struggling to keep up, an
