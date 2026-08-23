@@ -124,7 +124,51 @@ too late or just never arrive at all.
 
 <BaselineStatus featureId="webcodecs"></BaselineStatus>
 
+## Put the "element" in "video element"
+
+Before we can decode a single frame, we need something to decode it _into_. The `<video>` element
+is, first and foremost, an HTML element: it has attributes, it fires events, it can be styled with CSS,
+and it slots into the page like any other tag. If we want our replacement to be a believable stand-in,
+it should behave the same way.
+
+Luckily, the web platform has had [Custom Elements] for a while now, which let you define your own
+HTML tags backed by a JavaScript class. So the very first step is about as simple as it gets:
+
+```js
+class BabyVideoElement extends HTMLElement {
+  // ...
+}
+customElements.define("baby-video", BabyVideoElement);
+```
+
+Inside, we drop in a `<canvas>` element to draw our decoded frames onto, since `<canvas>` is the
+closest thing the platform gives us to "a rectangle I can paint pixels into myself". At this point,
+`<baby-video>` doesn't do anything useful yet, but you can already drop it into a page and get back...
+a black rectangle. The first baby steps of our `<baby-video>` element!
+
+A video element without any controls isn't very useful, though. We could build a play button and a
+seek bar by hand with plain HTML, CSS and JavaScript, but there's no need to: [Media Chrome] provides
+a whole set of accessible, styleable UI components. If we make our `<baby-video>` look like a `<video>`
+element and quack like a `<video>` element, then Media Chrome will treat it just like a `<video>`
+element. Since `<baby-video>` is designed to be a drop-in replacement, we get a fully working play/pause
+button and seek bar essentially for free, just by wrapping our element in a `<media-controller>` and
+adding the components we want:
+
+```html
+<media-controller>
+  <baby-video slot="media" src="..."></baby-video>
+  <media-control-bar>
+    <media-play-button></media-play-button>
+    <media-time-range></media-time-range>
+  </media-control-bar>
+</media-controller>
+```
+
+Of course, none of these buttons do anything meaningful yet, because `<baby-video>` doesn't have any
+video data to show, let alone the ability to decode and play it.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
+[Media Chrome]: https://www.media-chrome.org/
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
 [MSE]: https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API
 [hls.js]: https://github.com/video-dev/hls.js
