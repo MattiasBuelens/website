@@ -427,6 +427,99 @@ With proactive and reactive eviction both in place, `<baby-video>` can finally b
 without slowly eating all of the tab's memory. Old, unneeded chunks make way for new ones, and a full
 buffer degrades gracefully instead of just throwing an error at the player and giving up.
 
+## Switching between qualities
+
+A player that only ever plays a single, fixed quality isn't very useful on a real network: it either
+picks something safe and blurry, or something sharp that stalls the moment your connection dips. Real
+streaming players constantly re-evaluate which quality to buffer next, based on bandwidth, device
+capabilities, and how full the buffer already is. `<baby-video>` doesn't implement that decision logic
+itself, but it does need to cope with the *result* of that decision: a stream of segments that can
+switch from, say, 480p to 720p from one segment to the next.
+
+The easy part is the decoder itself. Each quality has its own `VideoDecoderConfig`, so switching quality
+just means reconfiguring the `VideoDecoder` before decoding the first frame of the new quality. We
+already have all the information we need for that, since `getDecodeDependenciesForFrame()` returns the
+`codecConfig` for whichever GOP the target frame belongs to. `#onAnimationFrame()` barely has to change:
+instead of only configuring the decoder when it's `"unconfigured"`, it now also reconfigures whenever
+the codec config for the next chunk differs from the last one it configured:
+
+```js
+#onAnimationFrame() {
+  // ...
+  const decodeQueue = videoTrackBuffer.getDecodeDependenciesForFrame(targetFrame, this.#lastDecodedFrame);
+  if (this.#videoDecoder.state === "unconfigured" || this.#lastVideoDecoderConfig !== decodeQueue.codecConfig) {
+    this.#videoDecoder.configure(decodeQueue.codecConfig);
+    this.#lastVideoDecoderConfig = decodeQueue.codecConfig;
+  }
+  // ...
+}
+```
+
+The harder part is what happens *in the buffer* when a quality switch is appended. Different renditions
+of the same video don't always cut their segments at exactly the same timestamps: one quality's
+segments might be 4 seconds each, while another's are 6 seconds. So when the player decides to switch
+quality, the new segment it appends can straddle the boundary of a segment that's already sitting in
+the buffer from the old quality.
+
+Suppose we've already buffered two 480p segments, and then switch to 720p starting from segment #3.
+That 720p segment overlaps the tail end of our second 480p segment. Per the MSE coded-frame-processing
+algorithm, overlapping old frames simply get evicted to make room for the new ones: the second 480p
+segment gets cut short, and 720p picks up from there. If playback hasn't reached that point yet, no
+one notices. But if `currentTime` is already inside that second segment when the switch happens, we've
+effectively pulled the rug out from under the decoder mid-GOP, which risks the exact same kind of stall
+or glitch we saw with the double-decode bug and with seeking.
+
+So, just like with buffer eviction, the player should try to avoid switching quality too close to
+`currentTime`, giving itself a safety margin before the switch actually reaches the decoder. That's not
+always possible, though: if the buffer is nearly empty because playback is struggling to keep up, an
+immediate downswitch to a lower quality, ragged segment boundary and all, may be the only way to avoid
+stalling completely.
+
+The cleanest fix doesn't live in the player at all: if the encoding pipeline aligns segment boundaries
+across every quality, so segment #3 always starts at the same timestamp regardless of rendition, then
+there's never any overlap to clean up in the first place, and quality switches become as simple as
+reconfiguring the decoder.
+
+## Conclusion
+
+So there we have it: a `<baby-video>` element, built from a `<canvas>`, a custom `MediaSource` and
+`SourceBuffer`, and WebCodecs, that covers most of what the real `<video>` element does. It plays,
+pauses, seeks, buffers, evicts what it no longer needs, and switches quality mid-stream without falling
+over. You can [try it yourself](https://mattiasbuelens.github.io/baby-video/) in any browser that
+supports WebCodecs, and the full source is on [GitHub](https://github.com/MattiasBuelens/baby-video)
+if you want to poke around.
+
+The biggest lesson for me was just how much nuance is hiding behind "decode the next frame". Every
+single piece of this project, from the very first render loop to the last quality switch, ran into some
+version of the same underlying fact: compressed video isn't a flat sequence of pictures, it's a sequence
+of *instructions* for reconstructing pictures, and most of those instructions only make sense in the
+context of the ones before them. The `<video>` element hides all of that from you, and it's only once
+you try to rebuild it yourself that you notice how much careful bookkeeping is going on underneath.
+
+The other big lesson: a video player's job isn't just decoding, it's *deciding what not to decode*, and
+*deciding what to throw away*. Skipping identical chunks, walking back to a keyframe instead of
+decoding everything from the start, evicting old GOPs before the buffer fills up, avoiding a quality
+switch too close to `currentTime`: none of that shows up if you only think about the happy path, and
+all of it turned out to matter.
+
+Finally, WebCodecs itself held up well. This was my first real project built on top of it, and even
+though it's still a fairly young and low-level API, it did everything I asked of it, including tapping
+into the browser's own hardware-accelerated decoders. I'd love to see it land in more browsers, so that
+experiments like this one don't have to stay Chrome-only party tricks.
+
+## Further reading
+
+If this got you curious about WebCodecs, here are a few places to go next:
+
+- The [WebCodecs samples](https://w3c.github.io/webcodecs/samples/) from the spec repository, including
+  one that puts video _and_ audio together into a single playable stream.
+- ["WebRTC and Real-Time Applications: WebCodecs and the Next Generation of Web Media APIs"](https://www.youtube.com/watch?v=U8T5U8sN5d4),
+  a talk by Bernard Aboba, Chris Cunningham and Paul Adenot at the 2021 Real-Time Communications Conference,
+  covering WebCodecs from the perspective of the people who designed it.
+- ["Video processing with WebCodecs"](https://developer.chrome.com/docs/web-platform/best-practices/webcodecs?hl=en)
+  on developer.chrome.com, a more general introduction that also covers use cases beyond playback, like
+  video editing and effects.
+
 [Custom Elements]: https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_custom_elements
 [drawImage]: https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/drawImage
 [Media Chrome]: https://www.media-chrome.org/
