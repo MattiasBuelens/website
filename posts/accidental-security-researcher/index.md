@@ -8,8 +8,7 @@ writing tests to cover all those cases. When one of those tests fails in a parti
 is the standard wrong, or the browser's implementation of it? And what's the potential impact of one missing check?
 
 In this blog post, I'll break down how toying around with a new feature shipped in Google Chrome in early 2021
-eventually led to finding a security vulnerability and getting my first CVE
-([CVE-2021-21148](https://nvd.nist.gov/vuln/detail/cve-2021-21148)).
+eventually led to finding a security vulnerability and getting my first CVE ([CVE-2021-21148]).
 
 > This write-up is long overdue.
 > Usually, security vulnerabilities are disclosed 90 days after they are reported.
@@ -211,3 +210,53 @@ onmessage = (event) => {
 ```
 
 The worker thread can write to the buffer, and the main thread can read the changed values from the buffer. Effectively, we've created an `ArrayBuffer` that is behaving like a `SharedArrayBuffer`.
+
+## Impact
+
+Immediately, I realized this was a big deal. Because of [vulnerabilities like Spectre and Meltdown](https://projectzero.google/2018/01/reading-privileged-memory-with-side.html), the `SharedArrayBuffer` API was initially disabled in [Chrome](https://developer.chrome.com/blog/meltdown-spectre?hl=en#high-resolution_timers) and [Firefox](https://blog.mozilla.org/security/2018/01/03/mitigations-landing-new-class-timing-attack/), and later [selectively re-enabled for websites with cross-origin isolation](https://web.dev/articles/cross-origin-isolation-guide). If we can construct an `ArrayBuffer` that has the same powerful capabilities as a `SharedArrayBuffer`, then it can bypass this cross-origin isolation requirement and potentially perform side-channel or cross-origin attacks.
+
+In fact, we can readily construct a high-resolution timer gadget by adapting the listing A.6 from the paper [_"Fantastic Timers and Where to Find Them: High-Resolution Microarchitectural Attacks in JavaScript"_ by Schwarz et al.](https://gruss.cc/files/fantastictimers.pdf):
+
+```javascript
+// main.js
+const counter = new Worker('counter.js')
+
+const memory = new WebAssembly.Memory({ initial: 1 })
+const view = new Uint32Array(memory.buffer)
+counter.postMessage(view, [view.buffer])
+
+setInterval(() => {
+  console.log('timer', view[0])
+}, 100)
+
+// counter.js
+onmessage = (event) => {
+  const view = event.data
+  while (true) {
+    view[0]++
+  }
+}
+```
+
+I reported this vulnerability on the Chromium bug tracker on January 25, 2021.
+
+## Timeline
+
+The Chromium team was very quick to verify and fix this vulnerability.
+
+[The actual fix in V8](https://chromium-review.googlesource.com/c/v8/v8/+/2653810) was to check if an array buffer is actually detachable before allowing it to be transferred. [This behavior was already agreed upon and specified in 2019](https://github.com/whatwg/html/issues/4601), with Firefox and Safari already implementing it. Now, Chromium is also aligned.
+
+| Date                                                                | Event                              |
+| ------------------------------------------------------------------- | ---------------------------------- |
+| [2021-01-25](https://issues.chromium.org/issues/40054566#comment1)  | Vulnerability reported to Chromium |
+| [2021-01-28](https://issues.chromium.org/issues/40054566#comment15) | Fix landed in M90 Canary           |
+| [2021-02-01](https://issues.chromium.org/issues/40054566#comment23) | Fix merged to M89 Beta             |
+| [2021-02-04](https://issues.chromium.org/issues/40054566#comment30) | Fix merged to M88 Stable           |
+| [2021-02-04](https://issues.chromium.org/issues/40054566#comment39) | Assigned [CVE-2021-21148]          |
+| [2021-02-10](https://issues.chromium.org/issues/40054566#comment55) | Awarded a VRP reward               |
+
+Afterward, I also submitted a patch for [the Streams standard](https://github.com/whatwg/streams/pull/1123) to make `byobReader.read(view)` check whether transferring the view's buffer was actually successful before proceeding with the read request. This is now also [covered by Web Platform Tests](https://github.com/web-platform-tests/wpt/pull/28557).
+
+## Conclusion
+
+[CVE-2021-21148]: https://nvd.nist.gov/vuln/detail/cve-2021-21148
