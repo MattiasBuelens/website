@@ -108,3 +108,29 @@ const { done, value } = await reader.read(new Uint32Array(memory.buffer))
 ```
 
 Yep, that makes sense, `read(view)` fails because it could not transfer the array buffer.
+
+## Something is not right
+
+...Hang on, why did `pull` get called in that last example? 🤨
+
+In the case of `SharedArrayBuffer`, the `TypeError` is being thrown while validating the input of `read(view)`, _before_ the stream could process the read request. Hence, `pull` was not called.
+
+However, it seems that with `WebAssembly.Memory`, the error is being thrown _after_ the read request started processing. Is it possible that the stream already added a new pull-into descriptor, and created a BYOB request for it?
+
+```js
+const readable = new ReadableStream({
+  type: 'bytes',
+  pull(c) {
+    console.log('pull called')
+    console.log('byobRequest exists?', c.byobRequest != null) // <<<
+  }
+})
+const reader = readable.getReader({ mode: 'byob' })
+
+const memory = new WebAssembly.Memory({ initial: 1 })
+const { done, value } = await reader.read(new Uint32Array(memory.buffer))
+```
+
+![Chrome showing the Aw, Snap! crash page with error code STATUS_BREAKPOINT.](./aw-snap.png)
+
+Uh-oh. 😨
