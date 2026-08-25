@@ -197,23 +197,17 @@ const worker = new Worker('worker.js')
 const memory = new WebAssembly.Memory({ initial: 1 })
 worker.postMessage(memory.buffer, { transfer: [memory.buffer] })
 const view = new Uint32Array(memory.buffer)
-setInterval(() => {
+setTimeout(() => {
   console.log('read from main', view[0])
 }, 100)
 
 // worker.js
 onmessage = (event) => {
   const view = new Uint32Array(event.data)
-  while (true) {
-    view[0]++
-  }
+  view[0] = 424242
 }
 
-// > read from main 37286519
-// > read from main 86598835
-// > read from main 129059881
-// > read from main 172114899
-// > read from main 220150135
+// > read from main 424242
 ```
 
 The worker thread can write to the buffer, and the main thread can read the changed values from the buffer. Effectively, we've created an `ArrayBuffer` that is behaving like a `SharedArrayBuffer`.
