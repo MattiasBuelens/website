@@ -133,4 +133,52 @@ const { done, value } = await reader.read(new Uint32Array(memory.buffer))
 
 ![Chrome showing the Aw, Snap! crash page with error code STATUS_BREAKPOINT.](./aw-snap.png)
 
-Uh-oh. 😨
+Uh-oh. That is _definitely_ not supposed to happen. 😨
+
+Let's take a step back: surely `postMessage` should correctly throw an error if we attempt to transfer a
+`WebAssembly.Memory`'s buffer?
+
+```js
+const worker = new Worker('worker.js')
+const memory = new WebAssembly.Memory({ initial: 1 })
+worker.postMessage(memory.buffer, { transfer: [memory.buffer] })
+```
+
+Wait, that didn't throw any errors at all? 😱 But then what do we get on the worker's side?
+
+```js
+// worker.js
+onmessage = (event) => {
+  console.log('buffer.byteLength:', ev.data.byteLength)
+}
+// > buffer.byteLength: 65536
+```
+
+So the worker _does_ receive the buffer. Can it write back to it though?
+
+```js
+// main.js
+const worker = new Worker('worker.js')
+const memory = new WebAssembly.Memory({ initial: 1 })
+worker.postMessage(memory.buffer, { transfer: [memory.buffer] })
+const view = new Uint32Array(memory.buffer)
+setInterval(() => {
+  console.log('read from main', view[0])
+}, 100)
+
+// worker.js
+onmessage = (event) => {
+  const view = new Uint32Array(event.data)
+  while (true) {
+    view[0]++
+  }
+}
+
+// > read from main 37286519
+// > read from main 86598835
+// > read from main 129059881
+// > read from main 172114899
+// > read from main 220150135
+```
+
+The worker thread can write to the buffer, and the main thread can read the changed values from the buffer. Effectively, we've created an `ArrayBuffer` that is behaving like a `SharedArrayBuffer`.
