@@ -3,7 +3,7 @@ title: 'How I accidentally became a security researcher'
 date: 2026-08-25T00:00:00+02:00
 ---
 
-Working on web standards often means thinking about tons of different edge cases how the new standard might be used, and
+Working on web standards often means thinking about tons of different edge cases of how the new standard might be used, and
 writing tests to cover all those cases. When one of those tests fails in a particular browser, things get interesting:
 is the standard wrong, or the browser's implementation of it? And what's the potential impact of one missing check?
 
@@ -111,10 +111,9 @@ const { done, value } = await reader.read(new Uint8Array(buffer))
 So far so good. However, there's another, less commonly known option to create a non-transferable buffer.
 
 A [`WebAssembly.Memory`](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Memory)
-object holds raw bytes of memory that can be used by a WebAssembly instance. These have their `[[]]` internal slot set
-to `"WebAssembly.Memory"` (as per
+object holds raw bytes of memory that can be used by a WebAssembly instance. These have their `[[ArrayBufferDetachKey]]` internal slot set to `"WebAssembly.Memory"` (as per
 the [WASM JS API specification](https://webassembly.github.io/spec/js-api/#create-a-fixed-length-memory-buffer)), so
-they cannot be transferred by regular JavaScript code. Instead, they can only be transferred by calling [
+they cannot be transferred by a regular `postMessage` call. Instead, they can only be transferred by calling [
 `WebAssembly.Memory.grow()`](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/JavaScript_interface/Memory/grow)
 (through JavaScript) or by using the [
 `memory.grow` instruction](https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Memory/grow) (through
