@@ -7,12 +7,12 @@ Working on web standards often means thinking about tons of different edge cases
 writing tests to cover all those cases. When one of those tests fails in a particular browser, things get interesting:
 is the standard wrong, or the browser's implementation of it? And what's the potential impact of one missing check?
 
-In this blog post, I'll break down how toying around with a new feature shipped in Google Chrome in early 2021
-eventually led to finding a security vulnerability and getting my first CVE ([CVE-2021-21148]).
+In this blog post, I'll break down how toying around with a new feature shipped in Google Chrome in early 2021[^1] eventually led to finding a security vulnerability and getting my first CVE ([CVE-2021-21148]).
 
-> This write-up is long overdue.
-> Usually, security vulnerabilities are disclosed 90 days after they are reported.
-> This bug is now over 2000 days old... Sorry for keeping you waiting! 😅
+[^1]:
+    This write-up is long overdue.
+    Usually, security vulnerabilities are disclosed 90 days after they are reported.
+    This bug is now over 2000 days old... Sorry for keeping you waiting! 😅
 
 ## Toying around with readable byte streams
 
