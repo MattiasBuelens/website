@@ -55,6 +55,11 @@ export const posts: Post[] = Object.entries(
 
     const preview = post.metadata.preview ? parse(post.metadata.preview) : body.querySelector('p')
 
+    // exclude <details> elements (e.g. video transcripts) from the reading time estimate
+    for (const details of body.querySelectorAll('details')) {
+      details.remove()
+    }
+
     return {
       ...post.metadata,
 
