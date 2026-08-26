@@ -21,6 +21,8 @@ Chrome's brand-new implementation of readable byte streams.
 [They had just shipped this feature as part of Chrome 89](https://chromestatus.com/feature/4535319661641728), making
 them the first browser to do so. As such, I was eager to toy around with it.
 
+> The following tests were performed on Chromium version 90.0.4398.0, built on January 24, 2021.
+
 [Readable byte streams](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_byte_streams) are a
 specialized version of readable streams, where the stream's contents are raw bytes. You can read from such a stream
 using a regular default reader, receiving the bytes as separate `Uint8Array` chunks:
@@ -52,14 +54,15 @@ while (true) {
     break
   }
   // `value` is a view upon our original buffer, not a newly allocated buffer.
-  console.log(value) // e.g. Uint8Array [ 1, 2, 3, 4 ]
+  console.log(value)
+  // > for example: Uint8Array [ 1, 2, 3, 4 ]
   // `read(view)` transfers `buffer`, so grab the re-transferred buffer
   // from `value` for the next iteration.
   buffer = value.buffer
 }
 ```
 
-Note that ownership of the buffer you pass to `byobReader.read(view)` is _transferred_ to the stream. This prevents you
+Note that ownership of the buffer you pass to `byobReader.read(view)` is _[transferred](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects)_ to the stream. This prevents you
 from reading or modifying the buffer's contents while the stream is filling the buffer. This is intended to give the
 browser more freedom in how it implements the low-level I/O operations, without needing to worry about JavaScript code
 seeing uninitialized or partial results.
