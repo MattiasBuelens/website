@@ -8,9 +8,9 @@ import Timeline from "#lib/components/Timeline.svelte";
 import TimelineItem from "#lib/components/TimelineItem.svelte";
 </script>
 
-Working on web standards often means thinking about tons of different edge cases of how the new standard might be used, and
-writing tests to cover all those cases. When one of those tests fails in a particular browser, things get interesting:
-is the standard wrong, or the browser's implementation of it? And what's the potential impact of one missing check?
+Working on web standards often means thinking about tons of different edge cases of how a new feature might be used.
+Sometimes the only way to find them is to just start poking at the API yourself: trying weird inputs, seeing what
+happens, and paying attention when something doesn't look quite right. Once in a while, that leads somewhere unexpected.
 
 In this blog post, I'll break down how toying around with a new feature shipped in Google Chrome in early 2021[^1] eventually led to finding a security vulnerability and getting my first CVE ([CVE-2021-21148]).
 
