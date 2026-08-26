@@ -3,6 +3,11 @@ title: 'How I accidentally became a security researcher'
 date: 2026-08-25T00:00:00+02:00
 ---
 
+<script>
+import Timeline from "#lib/components/Timeline.svelte";
+import TimelineItem from "#lib/components/TimelineItem.svelte";
+</script>
+
 Working on web standards often means thinking about tons of different edge cases of how the new standard might be used, and
 writing tests to cover all those cases. When one of those tests fails in a particular browser, things get interesting:
 is the standard wrong, or the browser's implementation of it? And what's the potential impact of one missing check?
@@ -248,14 +253,45 @@ The Chromium team was very quick to verify and fix this vulnerability.
 
 [The actual fix in V8](https://chromium-review.googlesource.com/c/v8/v8/+/2653810) was to check if an array buffer is actually detachable before allowing it to be transferred. [This behavior was already agreed upon and specified in 2019](https://github.com/whatwg/html/issues/4601), with Firefox and Safari already implementing it. Now, Chromium is also aligned.
 
-| Date                                                                | Event                              |
-| ------------------------------------------------------------------- | ---------------------------------- |
-| [2021-01-25](https://issues.chromium.org/issues/40054566#comment1)  | Vulnerability reported to Chromium |
-| [2021-01-28](https://issues.chromium.org/issues/40054566#comment15) | Fix landed in M90 Canary           |
-| [2021-02-01](https://issues.chromium.org/issues/40054566#comment23) | Fix merged to M89 Beta             |
-| [2021-02-04](https://issues.chromium.org/issues/40054566#comment30) | Fix merged to M88 Stable           |
-| [2021-02-04](https://issues.chromium.org/issues/40054566#comment39) | Assigned [CVE-2021-21148]          |
-| [2021-02-10](https://issues.chromium.org/issues/40054566#comment55) | Awarded a VRP reward               |
+<Timeline>
+
+<TimelineItem date="2021-01-25" href="https://issues.chromium.org/issues/40054566#comment1">
+
+Vulnerability reported to Chromium
+
+</TimelineItem>
+
+<TimelineItem date="2021-01-28" href="https://issues.chromium.org/issues/40054566#comment15">
+
+Fix landed in M90 Canary
+
+</TimelineItem>
+
+<TimelineItem date="2021-02-01" href="https://issues.chromium.org/issues/40054566#comment23">
+
+Fix merged to M89 Beta
+
+</TimelineItem>
+
+<TimelineItem date="2021-02-04" href="https://issues.chromium.org/issues/40054566#comment30">
+
+Fix merged to M88 Stable
+
+</TimelineItem>
+
+<TimelineItem date="2021-02-04" href="https://issues.chromium.org/issues/40054566#comment39">
+
+Assigned [CVE-2021-21148]
+
+</TimelineItem>
+
+<TimelineItem date="2021-02-10" href="https://issues.chromium.org/issues/40054566#comment55">
+
+Awarded a VRP reward
+
+</TimelineItem>
+
+</Timeline>
 
 Afterward, I also submitted a patch for [the Streams standard](https://github.com/whatwg/streams/pull/1123) to make `byobReader.read(view)` check whether transferring the view's buffer was actually successful before proceeding with the read request. This is now also [covered by Web Platform Tests](https://github.com/web-platform-tests/wpt/pull/28557).
 
