@@ -1,6 +1,6 @@
 ---
 title: 'How I accidentally became a security researcher'
-date: 2026-08-25T00:00:00+02:00
+date: 2026-08-26T14:00:00+02:00
 ---
 
 <script>
