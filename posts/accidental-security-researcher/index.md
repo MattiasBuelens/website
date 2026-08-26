@@ -167,7 +167,7 @@ const memory = new WebAssembly.Memory({ initial: 1 })
 const { done, value } = await reader.read(new Uint32Array(memory.buffer))
 ```
 
-![Chrome showing the Aw, Snap! crash page with error code STATUS_BREAKPOINT.](./aw-snap.png)
+![Chrome showing the “Aw, Snap!” crash page with error code STATUS_BREAKPOINT.](./aw-snap.png)
 
 Uh-oh. That is _definitely_ not supposed to happen. 😨
 
