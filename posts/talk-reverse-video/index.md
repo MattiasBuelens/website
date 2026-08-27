@@ -127,7 +127,7 @@ We've already reimplemented buffering, decoding, and rendering video ourselves. 
 Every streaming player's buffering loop looks more or less the same:
 
 1. If there's enough buffer **after** current time, wait.
-2. Find the **next** segment **after** the end of the buffer.
+2. Find the **next** segment **after** the **end** of the buffer.
 3. Download and append that segment.
 4. If it was the **last** segment, we're done buffering.
 5. Otherwise, repeat.
@@ -135,15 +135,12 @@ Every streaming player's buffering loop looks more or less the same:
 To buffer in reverse, flip the direction of every one of those lookups:
 
 1. If there's enough buffer **before** current time, wait.
-2. Find the **previous** segment **before** the start of the buffer.
+2. Find the **previous** segment **before** the **start** of the buffer.
 3. Download and append that segment.
 4. If it was the **first** segment, we're done buffering.
 5. Otherwise, repeat.
 
-It's not really a separate algorithm bolted on next to the first one, it's the _same_ five steps, with a
-single `forward` flag threaded through them. Whenever the loop has to decide "after" or "before", "next"
-or "previous", "last" or "first", it just asks `video.playbackRate >= 0` and picks accordingly (trimmed
-down from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek):
+We'll implement this as a single buffering algorithm, with a `forward` flag threaded throughout to decide on the direction in each step. The following sample is trimmed down from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek:
 
 ```js
 async function fillBuffer(sourceBuffer) {
@@ -177,9 +174,9 @@ async function fillBuffer(sourceBuffer) {
 }
 ```
 
-Nothing about a segment's own contents changes here, we're just walking the playlist back to front
-instead of front to back when `playbackRate` goes negative. Buffering fills up from the back of the
-video towards the front, ready for the decoder to work through in the same direction.
+Nothing about a segment's own contents changes here, we're just walking through the list of segments back to front instead of front to back when `playbackRate` goes negative. Buffering fills up from the back of the video towards the front.
+
+Next up, let's update the decoder to also work when we reverse its direction.
 
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
