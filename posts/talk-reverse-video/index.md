@@ -197,11 +197,13 @@ Feed the encoded frames into the decoder back to front, get decoded frames back 
 
 Let's try it on Big Buck Bunny:
 
+**⚠️ Content warning: the clip below contains flashing images.**
+
 <video controls muted src={reverseGlitched}></video>
 
 That is not how Big Buck Bunny is supposed to look. As video engineers, we've all seen those green frames before, and they haunt our nightmares.
 
-The problem is that video is mostly made up of P-frames and B-frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess. This bug is common enough that `<baby-video>`'s decoder still has a `BUG_DECODE_VIDEO_IN_REVERSE` flag lying around in [`#processVideoDecodeQueue()`][decode-queue] purely to reproduce it on demand.
+The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess. This bug is common enough that `<baby-video>`'s decoder has a dedicated `BUG_DECODE_VIDEO_IN_REVERSE` flag in [`#processVideoDecodeQueue()`][decode-queue], put there specifically so it could be shown off in the talk (and now, in this post).
 
 So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
 
