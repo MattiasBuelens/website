@@ -123,7 +123,7 @@ Let's find out: load a video directly in Safari, open the console, and set `play
 
 <figure>
 
-<Video src={reversePlaybackSafari} title="Safari attempting to play a video backwards"></Video>
+<video controls muted src={reversePlaybackSafari}></video>
 
 <figcaption>
 
