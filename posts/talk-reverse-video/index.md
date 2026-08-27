@@ -11,6 +11,7 @@ import Video from "#lib/components/Video.svelte";
 import Iframe from "#lib/components/Iframe.svelte";
 import BaselineStatus from "#lib/components/BaselineStatus.svelte";
 import Transcript from "./transcript.md";
+import reversePlaybackSafari from "./reverse-playback-safari.mp4";
 </script>
 
 ## Watch the talk
@@ -61,8 +62,20 @@ Turns out there's a few good reasons:
 - **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot
   touches the ball, so you can freeze it and draw an imaginary line across the pitch. (I have no idea how
   the offside rule actually works, but I'm told this is roughly it.)
-- **Funny GIFs.** Two hamsters eating a blade of grass, backwards, so that it grows a green tongue right
-  back into the ground. Objectively funnier this way, and quite possibly why the internet exists.
+- **Funny GIFs.** Two guinea pigs eating a blade of grass, backwards, so that it grows a green tongue
+  right back into their mouths. Objectively funnier this way, and quite possibly why the internet exists.
+
+<figure>
+
+![Two guinea pigs chewing, played in reverse so a blade of grass appears to grow back into their mouths.](./guinea-pigs.gif)
+
+<figcaption>
+
+Peak internet content, now available in reverse.
+
+</figcaption>
+
+</figure>
 
 ## Isn't this already possible?
 
@@ -74,17 +87,52 @@ exactly what we want to hear:
 
 So how not-widespread are we talking?
 
-The browser compatibility table doesn't inspire much confidence. Negative `playbackRate` is flagged
-"Experimental. Expect behavior to change in the future," and outside of Safari and its iOS/WebView
-cousins, it's a wall of red "No": Chrome, Edge, Firefox, Opera, and all of their Android counterparts
-included. Back in 2023, Chrome's entry came with an extra detail: setting `playbackRate` to a negative
-value didn't just get silently ignored, it threw an error outright.
+<figure>
+
+![MDN browser compatibility table for negative playbackRate, with Chrome's cell expanded to show a note that setting a negative playbackRate throws an error.](./browser-compat-chrome.png)
+
+<figcaption>
+
+Negative `playbackRate` is flagged "Experimental. Expect behavior to change in the future." Chrome's
+cell doesn't just say "No": clicking it reveals that setting `playbackRate` to a negative value doesn't
+get silently ignored, it throws an error outright.
+
+</figcaption>
+
+</figure>
+
+And it's not just Chrome. Outside of Safari and its iOS/WebView cousins, it's a wall of red "No": Edge,
+Firefox, Opera, and all of their Android counterparts included.
 
 Fine, that's most of them. But Safari's column is a green checkmark, "full support." Surely that one
-works? Let's find out: load a video directly in Safari, open the console, and set `playbackRate` to
-`-1`. What you get is technically moving backwards, but at maybe one or two frames per second. It's less
-"reverse playback" and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't
-count.
+works?
+
+<figure>
+
+![MDN browser compatibility table for negative playbackRate, with Safari's cell expanded to show full support since Safari 3.1.](./browser-compat-safari.png)
+
+<figcaption>
+
+Safari has supported negative `playbackRate` since version 3.1, released all the way back in 2008.
+
+</figcaption>
+
+</figure>
+
+Let's find out: load a video directly in Safari, open the console, and set `playbackRate` to `-1`.
+
+<figure>
+
+<Video src={reversePlaybackSafari} title="Safari attempting to play a video backwards"></Video>
+
+<figcaption>
+
+Technically moving backwards, but at maybe one or two frames per second. It's less "reverse playback"
+and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't count.
+
+</figcaption>
+
+</figure>
 
 So, as it turns out, none of the major browsers actually support reverse playback, despite what the spec
 and the compatibility tables might promise. Are we out of options?
