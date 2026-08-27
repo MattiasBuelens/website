@@ -146,7 +146,7 @@ or "previous", "last" or "first", it just asks `video.playbackRate >= 0` and pic
 down from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek):
 
 ```js
-async function fillBuffer(sourceBuffer, getSegmentForTime) {
+async function fillBuffer(sourceBuffer) {
   while (true) {
     const forward = video.playbackRate >= 0
 
