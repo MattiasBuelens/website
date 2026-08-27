@@ -169,7 +169,7 @@ Nothing about a segment's own contents changes here, we're just walking the play
 instead of front to back when `playbackRate` goes negative. Buffering fills up from the back of the
 video towards the front, ready for the decoder to work through in the same direction.
 
-[demo-app]: https://github.com/MattiasBuelens/baby-video/blob/main/demo/app.ts
+[demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
