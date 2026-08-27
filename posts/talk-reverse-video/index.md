@@ -117,10 +117,11 @@ Quick recap:
 - Implements part of the `<video>` element's own API: `play()`, `pause()`, `currentTime`, events, and so on.
 - Implements the Media Source Extensions API too: `MediaSource`, `SourceBuffer`, `appendBuffer()`.
 - Parses incoming fragmented MP4 into individual encoded video frames.
-- Decodes those frames with the WebCodecs API.
+- Decodes those frames with the [WebCodecs API][WebCodecs].
 - Renders the decoded frames onto a `<canvas>`.
 
-Since we're already reimplementing buffering, decoding, and rendering ourselves, we get to make each of those three steps run backwards instead of forwards.
+We've already reimplemented buffering, decoding, and rendering video ourselves. Now, we're going to make each of those three steps run _backwards_ instead of forwards.
 
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
+[WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
