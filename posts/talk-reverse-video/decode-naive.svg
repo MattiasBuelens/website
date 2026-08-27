@@ -1,4 +1,4 @@
-<svg viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+<svg viewBox="0 0 660 260" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
   <style>
     .label { font-size: 16px; fill: #000; text-anchor: end; dominant-baseline: middle; }
     .frame-label { font-size: 16px; fill: #1e293b; text-anchor: middle; dominant-baseline: middle; font-weight: 600; }
@@ -32,14 +32,16 @@
     <text class="frame-label" x="558" y="46">6</text>
   </g>
 
-  <line class="arrow" x1="398" y1="70" x2="398" y2="127"/>
-  <polygon class="arrowhead" points="398,132 392,120 404,120"/>
+  <!-- Decoding starts at frame 6, the last encoded frame -->
+  <line class="arrow" x1="558" y1="70" x2="558" y2="127"/>
+  <polygon class="arrowhead" points="558,132 552,120 564,120"/>
 
-  <rect class="decoder" x="343" y="130" width="110" height="40"/>
-  <text class="decoder-label" x="398" y="151">VideoDecoder</text>
+  <rect class="decoder" x="503" y="130" width="110" height="40"/>
+  <text class="decoder-label" x="558" y="151">VideoDecoder</text>
 
-  <line class="arrow" x1="398" y1="170" x2="398" y2="207"/>
-  <polygon class="arrowhead" points="398,212 392,200 404,200"/>
+  <!-- Frame 6 comes out decoded first, landing at the front of the decoded frames row -->
+  <polyline class="arrow" points="558,170 558,195 238,195 238,207"/>
+  <polygon class="arrowhead" points="238,212 232,200 244,200"/>
 
   <text class="label" x="200" y="235">Decoded frames:</text>
   <g>

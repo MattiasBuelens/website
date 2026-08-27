@@ -42,15 +42,15 @@
     <text class="frame-label" x="558" y="86">6</text>
   </g>
 
-  <!-- Only GOP 2 feeds the decoder first -->
-  <line class="arrow" x1="494" y1="110" x2="494" y2="147"/>
-  <polygon class="arrowhead" points="494,152 488,140 500,140"/>
+  <!-- Decoding starts at frame 4, the start of GOP 2 -->
+  <line class="arrow" x1="430" y1="110" x2="430" y2="147"/>
+  <polygon class="arrowhead" points="430,152 424,140 436,140"/>
 
-  <rect class="decoder" x="439" y="150" width="110" height="40"/>
-  <text class="decoder-label" x="494" y="171">VideoDecoder</text>
+  <rect class="decoder" x="375" y="150" width="110" height="40"/>
+  <text class="decoder-label" x="430" y="171">VideoDecoder</text>
 
-  <!-- Decoder output loops back to the start of the decoded frames row -->
-  <polyline class="arrow" points="494,190 494,225 238,225 238,247"/>
+  <!-- Frame 4 comes out decoded first, landing at the front of the decoded frames row -->
+  <polyline class="arrow" points="430,190 430,225 238,225 238,247"/>
   <polygon class="arrowhead" points="238,252 232,240 244,240"/>
 
   <text class="label" x="200" y="275">Decoded frames:</text>
