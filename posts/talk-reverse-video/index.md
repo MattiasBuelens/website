@@ -4,7 +4,7 @@ date: 2026-08-27T00:00:00+02:00
 ---
 
 At [Demuxed 2023](https://2023.demuxed.com/), I presented a talk about how I extended [baby's first HTML5 `<video>` element](/post/talk-baby-video/) to support reverse playback.
-You can watch the talk below.
+You can watch the talk below, and read along for more details about why and how I built this.
 
 <script>
 import Video from "#lib/components/Video.svelte";
