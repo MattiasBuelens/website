@@ -251,7 +251,7 @@ The first step barely needs any changes: `currentTime` already advances by `play
 
 ```js
 #renderVideoFrame() {
-  const currentTimeInMicros = Math.floor(1e6 * this.currentTime)
+  const currentTimeInMicros = Math.floor(1e6 * this.#currentTime)
 
   // Find the frame whose timestamp range contains currentTime.
   const currentFrameIndex = this.#decodedVideoFrames.findIndex(
