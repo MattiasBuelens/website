@@ -13,10 +13,11 @@ In my day job, I work at Dolby × THEO where I develop solutions for online vide
 
 ## Talks
 
-I've done two talks so far, both with a full write-up on this blog:
+I've done three talks so far:
 
 - [Demuxed 2022: Baby's first HTML5 video element](https://www.youtube.com/watch?v=OBhlTcllq_E&list=PLkyaYNWEKcOf98lZxnCcL6y7ZIVU3oSYO&index=7) ([write-up](/post/talk-baby-video/))
 - [Demuxed 2023: The curious player of Benjamin Button: reverse video on the web](https://www.youtube.com/watch?v=0sYeEpR10sY&list=PLkyaYNWEKcOesxC4VpHJtbjnzuN6r1NGg&index=15) ([write-up](/post/talk-reverse-video/))
+- [Demuxed 2025: VHS for the streaming era: record and replay for HLS](https://www.youtube.com/watch?v=b9wfAgPIiO0&list=PLkyaYNWEKcOeMg62dwyzfX4GvQbhhjByv&index=13)
 
 ## Tech stack
 
