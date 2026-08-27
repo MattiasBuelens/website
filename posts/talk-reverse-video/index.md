@@ -15,6 +15,7 @@ import reversePlaybackSafari from "./reverse-playback-safari.mp4";
 import reverseGlitched from "./reverse-glitched.mp4";
 import butterflyReversed from "./butterfly-reversed.mp4";
 import motionVectors from "./motion-vectors.mp4";
+import reverseFixed from "./reverse-fixed.mp4";
 </script>
 
 ## Watch the talk
@@ -246,7 +247,7 @@ On every `requestAnimationFrame()`:
 2. Find the decoded frame at `currentTime`.
 3. Draw that frame to the `<canvas>`.
 
-The first step barely needs any changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so once `playbackRate` is negative, `currentTime` just ticks downwards on its own. The second step is where the reordering from Step 2 actually gets resolved, in [`#renderVideoFrame()`][render-frame]:
+The first step barely needs any changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so once `playbackRate` is negative, `currentTime` just ticks downwards on its own. The second step is where the reordering from [step 2](#step-2-decoding-in-reverse) actually gets resolved, in [`#renderVideoFrame()`][render-frame]:
 
 ```js
 #renderVideoFrame() {
@@ -283,6 +284,58 @@ The second one is about staying ahead: by the time we render the first frame of 
 
 None of this is a problem on a desktop with plenty of RAM and a fast GPU, but it might not play as smoothly on a lower-end smartphone. Sorry. You can try [downloading more RAM](https://downloadmoreram.com/).
 
+## Bonus: reverse audio
+
+`<baby-video>` doesn't have any real use case for this, but since I'd already come this far: it plays audio in reverse too.
+
+Audio turns out to be a lot simpler than video:
+
+- Audio frames are encoded independently, so they can be decoded in any order. No GOPs, no dependency chains, none of Step 2's headaches.
+- Each audio frame contains multiple samples, though, so decoding frames in the right order isn't quite enough: the samples _within_ each frame need to be reversed too.
+
+Rendering uses Web Audio's `AudioBufferSourceNode`. `<baby-video>` concatenates several decoded audio frames into a single `AudioBuffer` (fewer nodes to manage), and, for reverse playback, reverses both the frame order and the samples within it, in [`#renderAudioFrame()`][render-audio-frame]:
+
+```js
+#renderAudioFrame(frames, direction) {
+  // Frames were decoded in an arbitrary order, so put them back
+  // in their original chronological order first.
+  if (direction === Direction.BACKWARD) {
+    frames.reverse()
+  }
+
+  // Concatenate all frames into a single AudioBuffer.
+  const audioBuffer = new AudioBuffer({
+    numberOfChannels: frames[0].numberOfChannels,
+    length: sumWith(frames, (frame) => frame.numberOfFrames),
+    sampleRate: frames[0].sampleRate
+  })
+  for (let channel = 0; channel < audioBuffer.numberOfChannels; channel++) {
+    const options = { format: 'f32-planar', planeIndex: channel }
+    const destination = audioBuffer.getChannelData(channel)
+    let offset = 0
+    for (const frame of frames) {
+      const size = frame.allocationSize(options) / Float32Array.BYTES_PER_ELEMENT
+      frame.copyTo(destination.subarray(offset, offset + size), options)
+      offset += size
+    }
+    // Now reverse the actual samples too.
+    if (direction === Direction.BACKWARD) {
+      destination.reverse()
+    }
+  }
+
+  this.#scheduleAudioBuffer(audioBuffer)
+}
+```
+
+That buffer is then handed to an `AudioBufferSourceNode`, scheduled slightly ahead of time via [`node.start(when)`][schedule-audio-buffer] so a late scheduling call never leaves an audible gap. An `AudioWorklet` would probably do an even better job of this, but I never got around to making that work.
+
+<video controls src={reverseFixed}></video>
+
+There's still a bit of a crackle in there, so `AudioWorklet` might be worth revisiting someday. But it's good enough to enjoy the ending the way it was meant to be: the butterfly comes back to life.
+
+[render-audio-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1111-L1171
+[schedule-audio-buffer]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1210-L1232
 [on-video-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L747-L804
 [decode-video-frames]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L650-L699
 [render-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L814-L858
