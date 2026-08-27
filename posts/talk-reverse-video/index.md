@@ -50,38 +50,41 @@ title="Slides"></Iframe>
 
 ## Motivation
 
-Video on the web only ever goes one way: forward. Press play, and time marches on. That's fine for
-watching a movie, but it's not the only thing people want to do with video.
+Video on the web only ever goes one way: forward. Press play, and time marches on. Why would you ever
+need it to go the other way?
 
-Take video editing: if you're trying to find the exact frame where a cut or a transition happens, it
-helps a lot to be able to nudge backwards and forwards around that point, instead of repeatedly seeking
-to guess where you landed. Or think of a video assistant referee, scrubbing through a replay to find the
-exact frame where an attacker's boot touches the ball, so they can freeze it and draw an imaginary line
-across the pitch. (I have no idea how the offside rule actually works, but I'm told this is roughly it.)
-And, of course, there's the noblest use case of all: funny GIFs, which are objectively funnier played in
-reverse. Two hamsters eating a blade of grass, backwards, so that it grows a green tongue right back
-into the ground — that's basically why the internet exists.
+Turns out there's a few good reasons:
 
-So: video should just go forward, right? Why would we ever need it to go backwards?
+- **Video editing.** Finding the exact frame where a cut or a transition happens is a lot easier if you
+  can nudge backwards and forwards around that point, instead of repeatedly seeking to guess where you
+  landed.
+- **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot
+  touches the ball, so you can freeze it and draw an imaginary line across the pitch. (I have no idea how
+  the offside rule actually works, but I'm told this is roughly it.)
+- **Funny GIFs.** Two hamsters eating a blade of grass, backwards, so that it grows a green tongue right
+  back into the ground. Objectively funnier this way, and quite possibly why the internet exists.
 
 ## Isn't this already possible?
 
 Surely someone thought of this already. And indeed, [MDN's docs on `playbackRate`][playbackRate] say
-exactly what we want to hear: "a negative `playbackRate` value indicates that the media should be played
-backwards." There's a hedge right there in the same sentence, though — "support for this is not yet
-widespread" — so let's see just how not-widespread we're talking about.
+exactly what we want to hear:
 
-The browser compatibility table doesn't inspire much confidence: negative `playbackRate` is flagged
+> A negative `playbackRate` value indicates that the media should be played backwards, but support for
+> this is not yet widespread.
+
+So how not-widespread are we talking?
+
+The browser compatibility table doesn't inspire much confidence. Negative `playbackRate` is flagged
 "Experimental. Expect behavior to change in the future," and outside of Safari and its iOS/WebView
-cousins, it's a wall of red "No" — Chrome, Edge, Firefox, Opera, and all of their Android counterparts
+cousins, it's a wall of red "No": Chrome, Edge, Firefox, Opera, and all of their Android counterparts
 included. Back in 2023, Chrome's entry came with an extra detail: setting `playbackRate` to a negative
 value didn't just get silently ignored, it threw an error outright.
 
-Fine, that's most of them. But Safari's column is a green checkmark, "full support" — surely that one
+Fine, that's most of them. But Safari's column is a green checkmark, "full support." Surely that one
 works? Let's find out: load a video directly in Safari, open the console, and set `playbackRate` to
-`-1`... and what you get is technically moving backwards, but at maybe one or two frames per second. It's
-less "reverse playback" and more "a slideshow, played in the wrong order." A valiant effort, but it
-doesn't count.
+`-1`. What you get is technically moving backwards, but at maybe one or two frames per second. It's less
+"reverse playback" and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't
+count.
 
 So, as it turns out, none of the major browsers actually support reverse playback, despite what the spec
 and the compatibility tables might promise. Are we out of options?
