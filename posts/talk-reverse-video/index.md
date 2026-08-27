@@ -128,46 +128,48 @@ Every streaming player's buffering loop looks more or less the same: check wheth
 video ahead of `currentTime`, and if not, find the next unbuffered segment, download it, and append it.
 Repeat until there's nothing left to append.
 
-```js
-async #fillBuffer() {
-  while (true) {
-    if (this.#bufferedDurationAfter(this.currentTime) >= this.#bufferGoal) {
-      return // enough buffer ahead, nothing to do for now
-    }
-    const segment = this.#findNextSegmentAfter(this.#bufferEnd)
-    if (!segment) {
-      return // reached the last segment, we're done buffering
-    }
-    const segmentData = await this.#downloadSegment(segment)
-    this.#sourceBuffer.appendBuffer(segmentData)
-  }
-}
-```
-
-To buffer in reverse, we don't need a different algorithm, just a mirror image of this one: swap every
-"after" for "before", every "next" for "previous", and stop once we've reached the very first segment
-instead of the last one.
+Buffering in reverse isn't a separate algorithm bolted on next to that one, it's the _same_ loop, with a
+single `forward` flag threaded through it. Whenever the loop has to decide "ahead" or "behind", "next" or
+"previous", "last" or "first", it just asks `video.playbackRate >= 0` and picks accordingly (trimmed down
+from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek):
 
 ```js
-async #fillBufferInReverse() {
+async function fillBuffer(sourceBuffer, getSegmentForTime) {
   while (true) {
-    if (this.#bufferedDurationBefore(this.currentTime) >= this.#bufferGoal) {
-      return // enough buffer behind, nothing to do for now
+    const forward = video.playbackRate >= 0
+
+    // Wait until we're running low on buffer in our playback direction.
+    while (true) {
+      const range = sourceBuffer.buffered.find(video.currentTime)
+      if (!range) break // no buffer at all, fetch immediately
+      const bufferedAmount = forward
+        ? range.end - video.currentTime
+        : video.currentTime - range.start
+      if (bufferedAmount <= bufferGoal) break
+      await waitForEvent(video, ['timeupdate', 'ratechange'])
     }
-    const segment = this.#findPreviousSegmentBefore(this.#bufferStart)
-    if (!segment) {
-      return // reached the first segment, we're done buffering
+
+    // Find, download and append the next segment in that direction.
+    const range = sourceBuffer.buffered.find(video.currentTime)
+    const nextTime = range ? (forward ? range.end : range.start - 0.001) : video.currentTime
+    const nextSegment = getSegmentForTime(nextTime)
+    const segmentData = await (await fetch(nextSegment.url)).arrayBuffer()
+    sourceBuffer.appendBuffer(segmentData)
+    await waitForEvent(sourceBuffer, 'updateend')
+
+    // Stop once we've reached the front of the video (in reverse) or the end (forward).
+    if (forward ? nextSegment.isLast : nextSegment.isFirst) {
+      return
     }
-    const segmentData = await this.#downloadSegment(segment)
-    this.#sourceBuffer.appendBuffer(segmentData)
   }
 }
 ```
 
 Nothing about a segment's own contents changes here, we're just walking the playlist back to front
-instead of front to back. Buffering fills up from the back of the video towards the front, ready for
-the decoder to work through in the same direction.
+instead of front to back when `playbackRate` goes negative. Buffering fills up from the back of the
+video towards the front, ready for the decoder to work through in the same direction.
 
+[demo-app]: https://github.com/MattiasBuelens/baby-video/blob/main/demo/app.ts
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
