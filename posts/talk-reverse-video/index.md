@@ -56,14 +56,9 @@ need it to go the other way?
 
 Turns out there's a few good reasons:
 
-- **Video editing.** Finding the exact frame where a cut or a transition happens is a lot easier if you
-  can nudge backwards and forwards around that point, instead of repeatedly seeking to guess where you
-  landed.
-- **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot
-  touches the ball, so you can freeze it and draw an imaginary line across the pitch. (I have no idea how
-  the offside rule actually works, but I'm told this is roughly it.)
-- **Funny GIFs.** Two guinea pigs eating a blade of grass, backwards, so that it grows a green tongue
-  right back into their mouths. Objectively funnier this way, and quite possibly why the internet exists.
+- **Video editing.** Finding the exact frame where a cut or a transition happens is a lot easier if you can nudge backwards and forwards around that point, instead of repeatedly seeking to guess where you landed.
+- **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot touches the ball, so you can freeze it and draw an imaginary line across the pitch. (Or something like that, I don't actually know how the offside rule works.)
+- **Funny GIFs.** The entire reason why the internet exists.
 
 <figure>
 
@@ -79,62 +74,27 @@ Peak internet content, now available in reverse.
 
 ## Isn't this already possible?
 
-Surely someone thought of this already. And indeed, [MDN's docs on `playbackRate`][playbackRate] say
-exactly what we want to hear:
+Surely someone thought of this already. And indeed, [MDN's docs on `playbackRate`][playbackRate] say exactly what we want to hear:
 
-> A negative `playbackRate` value indicates that the media should be played backwards, but support for
-> this is not yet widespread.
+> A negative `playbackRate` value indicates that the media should be played backwards, but support for this is not yet widespread.
 
-So how not-widespread are we talking?
-
-<figure>
+"Not yet widespread", you say? Let's see if we can get more details from [the browser compatibility table][playbackRate-compat].
 
 ![MDN browser compatibility table for negative playbackRate, with Chrome's cell expanded to show a note that setting a negative playbackRate throws an error.](./browser-compat-chrome.png)
 
-<figcaption>
-
-Negative `playbackRate` is flagged "Experimental. Expect behavior to change in the future." Chrome's
-cell doesn't just say "No": clicking it reveals that setting `playbackRate` to a negative value doesn't
-get silently ignored, it throws an error outright.
-
-</figcaption>
-
-</figure>
-
-And it's not just Chrome. Outside of Safari and its iOS/WebView cousins, it's a wall of red "No": Edge,
-Firefox, Opera, and all of their Android counterparts included.
-
-Fine, that's most of them. But Safari's column is a green checkmark, "full support." Surely that one
-works?
-
-<figure>
+That's a "no" across the board, except for Safari. Surely that one works?
 
 ![MDN browser compatibility table for negative playbackRate, with Safari's cell expanded to show full support since Safari 3.1.](./browser-compat-safari.png)
 
-<figcaption>
-
-Safari has supported negative `playbackRate` since version 3.1, released all the way back in 2008.
-
-</figcaption>
-
-</figure>
+_Supposedly_, Safari has supported negative `playbackRate` since version 3.1, released all the way back in 2008.
 
 Let's find out: load a video directly in Safari, open the console, and set `playbackRate` to `-1`.
 
-<figure>
-
 <video controls muted src={reversePlaybackSafari}></video>
 
-<figcaption>
+Technically moving backwards, but at maybe one or two frames per second. It's less "reverse playback" and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't count.
 
-Technically moving backwards, but at maybe one or two frames per second. It's less "reverse playback"
-and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't count.
-
-</figcaption>
-
-</figure>
-
-So, as it turns out, none of the major browsers actually support reverse playback, despite what the spec
-and the compatibility tables might promise. Are we out of options?
+So in reality, none of the major browsers actually support reverse playback, despite what the spec and the compatibility tables might promise. Are we out of options?
 
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
+[playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
