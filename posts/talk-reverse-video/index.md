@@ -98,6 +98,8 @@ So in reality, none of the major browsers actually support reverse playback, des
 
 ## Recap: baby's first video element
 
+If the browser's own `<video>` element won't play in reverse, why not build one that will? I already did most of the work for [last year's talk](/post/talk-baby-video/): `<baby-video>`, an HTML custom element that reimplements a chunk of the `<video>` element from scratch.
+
 <figure>
 
 ![Hand-drawn title slide reading “Baby’s first HTML5 video element”, with “first” crossed out and replaced by “second”.](./baby-second-video.png)
@@ -109,8 +111,6 @@ Yes, we're back. No, my slide design still hasn't improved.
 </figcaption>
 
 </figure>
-
-If the browser's own `<video>` element won't play in reverse, why not build one that will? I already did most of the work for [last year's talk](/post/talk-baby-video/): `<baby-video>`, an HTML custom element that reimplements a chunk of the `<video>` element from scratch.
 
 Quick recap:
 
