@@ -96,5 +96,31 @@ Technically moving backwards, but at maybe one or two frames per second. It's le
 
 So in reality, none of the major browsers actually support reverse playback, despite what the spec and the compatibility tables might promise. Are we out of options?
 
+## Recap: baby's first video element
+
+<figure>
+
+![Hand-drawn title slide reading “Baby’s first HTML5 video element”, with “first” crossed out and replaced by “second”.](./baby-second-video.png)
+
+<figcaption>
+
+Yes, we're back. No, my slide design still hasn't improved.
+
+</figcaption>
+
+</figure>
+
+If the browser's own `<video>` element won't play in reverse, why not build one that will? I already did most of the work for [last year's talk](/post/talk-baby-video/): `<baby-video>`, an HTML custom element that reimplements a chunk of the `<video>` element from scratch.
+
+Quick recap:
+
+- Implements part of the `<video>` element's own API: `play()`, `pause()`, `currentTime`, events, and so on.
+- Implements the Media Source Extensions API too: `MediaSource`, `SourceBuffer`, `appendBuffer()`.
+- Parses incoming fragmented MP4 into individual encoded video frames.
+- Decodes those frames with the WebCodecs API.
+- Renders the decoded frames onto a `<canvas>`.
+
+Since we're already reimplementing buffering, decoding, and rendering ourselves, we get to make each of those three steps run backwards instead of forwards.
+
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
