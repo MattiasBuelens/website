@@ -14,6 +14,7 @@ import Transcript from "./transcript.md";
 import reversePlaybackSafari from "./reverse-playback-safari.mp4";
 import reverseGlitched from "./reverse-glitched.mp4";
 import butterflyReversed from "./butterfly-reversed.mp4";
+import motionVectors from "./motion-vectors.mp4";
 </script>
 
 ## Watch the talk
@@ -205,6 +206,8 @@ Let's try it on Big Buck Bunny:
 That is not how Big Buck Bunny is supposed to look. As video engineers, we've all seen those green frames before, and they haunt our nightmares.
 
 The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess.
+
+<video muted autoplay loop src={motionVectors}></video>
 
 So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
 
