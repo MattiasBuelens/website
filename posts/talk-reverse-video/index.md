@@ -203,7 +203,7 @@ Let's try it on Big Buck Bunny:
 
 That is not how Big Buck Bunny is supposed to look. As video engineers, we've all seen those green frames before, and they haunt our nightmares.
 
-The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess. This bug is common enough that `<baby-video>`'s decoder has a dedicated `BUG_DECODE_VIDEO_IN_REVERSE` flag in [`#processVideoDecodeQueue()`][decode-queue], put there specifically so it could be shown off in the talk (and now, in this post).
+The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess.
 
 So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
 
@@ -221,8 +221,6 @@ To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 
 </figcaption>
 
 </figure>
-
-[decode-queue]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L705-L745
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
