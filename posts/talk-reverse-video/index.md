@@ -1,6 +1,6 @@
 ---
 title: 'Talk: The curious player of Benjamin Button: reverse video on the web'
-date: 2026-08-27T00:00:00+02:00
+date: 2026-08-27T17:00:00+02:00
 ---
 
 At [Demuxed 2023](https://2023.demuxed.com/), I presented a talk about how I extended [baby's first HTML5 `<video>` element](/post/talk-baby-video/) to support reverse playback.
