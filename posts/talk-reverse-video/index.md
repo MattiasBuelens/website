@@ -334,6 +334,16 @@ That buffer is then handed to an `AudioBufferSourceNode`, scheduled slightly ahe
 
 There's still a bit of a crackle in there, so `AudioWorklet` might be worth revisiting someday. But it's good enough to enjoy the ending the way it was meant to be: the butterfly comes back to life.
 
+## Conclusion
+
+The thing that surprised me most about this project is how little of it was actually about "reverse" as some separate mode to design for. Buffering just needed a `forward` flag threaded through the same loop it already had. Decoding didn't need a different algorithm, just a different order to feed the very same GOPs into the very same `VideoDecoder`. Rendering didn't need to change at all: a lookup that finds "the frame that covers `currentTime`" doesn't care which direction time happens to be moving in, or what order the decoded frames happen to be sitting in.
+
+The one place reverse genuinely costs something is memory. Forward playback can decode a frame, render it, and immediately forget about it. Reverse playback has to hold an entire GOP, sometimes two, fully decoded at once, because the first frame it decodes is the last one it gets to show. That's a real tradeoff, and on a low-end device it might be the difference between smooth playback and a slideshow.
+
+And the audio bonus was a nice reminder that not all compressed media carries this baggage. Without inter-frame prediction to worry about, reversing audio really is about as simple as it sounds: decode the frames, reverse the samples, done.
+
+You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs, and the full source, reverse playback included, is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
+
 [render-audio-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1111-L1171
 [schedule-audio-buffer]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1210-L1232
 [on-video-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L747-L804
