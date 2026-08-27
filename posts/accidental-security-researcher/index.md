@@ -99,7 +99,7 @@ worker.postMessage(buffer, { transfer: [buffer] })
 //   SharedArrayBuffer can not be in transfer list.
 ```
 
-For the same reason, they cannot be used for `byobReader.read(view)`:
+For the same reason, they cannot be used for `byobReader.read(view)`[^2]:
 
 ```js
 const readable = new ReadableStream({
@@ -115,6 +115,11 @@ const { done, value } = await reader.read(new Uint8Array(buffer))
 // > Uncaught TypeError: Failed to execute 'read' on 'ReadableStreamBYOBReader':
 //   The provided ArrayBufferView value must not be shared.
 ```
+
+[^2]:
+    This restriction may not be permanent. There are ongoing discussions about adding support for reading into a
+    `SharedArrayBuffer`-backed view, see [whatwg/streams#757](https://github.com/whatwg/streams/issues/757) and
+    [whatwg/streams#1348](https://github.com/whatwg/streams/issues/1348).
 
 So far so good. However, there's another, less commonly known option to create a non-transferable buffer.
 
