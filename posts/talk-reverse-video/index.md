@@ -12,6 +12,7 @@ import Iframe from "#lib/components/Iframe.svelte";
 import BaselineStatus from "#lib/components/BaselineStatus.svelte";
 import Transcript from "./transcript.md";
 import reversePlaybackSafari from "./reverse-playback-safari.mp4";
+import reverseGlitched from "./reverse-glitched.mp4";
 </script>
 
 ## Watch the talk
@@ -178,6 +179,48 @@ Nothing about a segment's own contents changes here, we're just walking through 
 
 Next up, let's update the decoder to also work when we reverse its direction.
 
+## Step 2: decoding in reverse
+
+We've appended our fMP4 segments and parsed them into individual encoded frames. Decoding them in reverse sounds like it should be just as simple as buffering in reverse: start with the last frame, run it through WebCodecs' `VideoDecoder`, store the resulting decoded frame, then work backwards from there.
+
+<figure>
+
+![Diagram showing frames 1 through 6 being fed into a VideoDecoder in order, with decoded frames coming out in the reverse order 6 through 1.](./decode-naive.svg)
+
+<figcaption>
+
+Feed the encoded frames into the decoder back to front, get decoded frames back in that same order. Should work, right?
+
+</figcaption>
+
+</figure>
+
+Let's try it on Big Buck Bunny:
+
+<video controls muted src={reverseGlitched}></video>
+
+That is not how Big Buck Bunny is supposed to look. As video engineers, we've all seen those green frames before, and they haunt our nightmares.
+
+The problem is that video is mostly made up of P-frames and B-frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess. This bug is common enough that `<baby-video>`'s decoder still has a `BUG_DECODE_VIDEO_IN_REVERSE` flag lying around in [`#processVideoDecodeQueue()`][decode-queue] purely to reproduce it on demand.
+
+So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
+
+- Frames within one group of pictures ("GOP") still need to go to the decoder in their _original_ order, since they depend on each other.
+- We _can_ still change the order in which we send entire GOPs.
+
+<figure>
+
+![Diagram showing GOP 1 (frames 1-3) and GOP 2 (frames 4-6), with only GOP 2 being fed into the VideoDecoder first, and its decoded frames 4, 5, 6 coming out before frames 1, 2, 3 from GOP 1.](./decode-gop.svg)
+
+<figcaption>
+
+To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 2 through the decoder before GOP 1, keeping each GOP's own frame order intact.
+
+</figcaption>
+
+</figure>
+
+[decode-queue]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L705-L745
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
