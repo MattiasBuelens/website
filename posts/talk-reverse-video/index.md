@@ -208,7 +208,7 @@ The problem is that video is mostly made up of P‑frames and B‑frames, not fu
 So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
 
 - Frames within one group of pictures ("GOP") still need to go to the decoder in their _original_ order, since they depend on each other.
-- We _can_ still change the order in which we send entire GOPs.
+- We _can_ still change the order in which we send entire GOPs, since they _are_ independent from one another.
 
 <figure>
 
@@ -221,6 +221,7 @@ To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 
 </figcaption>
 
 </figure>
+
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
