@@ -2,8 +2,9 @@
 title: "Transcript: The curious player of Benjamin Button"
 ---
 
-_(reversed audio plays over the closing slide)_
-Wait, um, sorry — that's my outro slide, I think I'm still in reverse. Anyway, there we go.
+_Tskumied iejaab doeg!_ (reversed: "Thank you, Demuxed!") Wait, um,
+sorry — that's my outro slide, I think I'm still in reverse. Anyway,
+there we go.
 
 Hello, Demuxed! Thanks for having me back, and look, I even brought some
 professionally looking slides this time. So, I'm Mattias, and I'm once
@@ -18,8 +19,8 @@ of repeatedly seeking all over the place. Or, if you're a video-assisted
 referee, you may want to find the exact frame when an attacker kicks the
 ball, and then draw an imaginary line across the field or something like
 that — I don't know how the offside rule works. Or, thirdly, you may want
-to make funny GIFs, which are funnier in reverse, and that's the main
-reason why the internet exists after all.
+to make funny GIFs, which are funnier in reverse — like, they have a
+green tongue, and that's the reason why the internet exists after all.
 
 So, isn't this already possible? Well, if you ask MDN, it says that if
 the `playbackRate` is negative, the media is played backwards. Problem
@@ -94,8 +95,8 @@ find the frame at that current time, and we draw that to the canvas.
 Now, the decoded frames are in a slightly different order, so we have to
 look a bit further in our list, but that's all doable. So then that
 looks something like this — and that is a reverse-playing Big Buck
-Bunny. The butterfly flies backwards, and Big Buck Bunny is amazed, he's
-never seen this before. Great, that works!
+Bunny. The butterfly is going backwards, Big Buck Bunny has never seen
+this before, he smells some flowers in reverse. Great, that works!
 
 So, we got this thing working, but we've encountered some challenges
 along the way, and that impacts some of the performance of this thing.
@@ -134,6 +135,4 @@ the butterfly lives again. Glorious.
 So there you have it. If you want to toy around with this, you can scan
 the QR code, or go to my GitHub profile, it's all there. Thanks for
 listening! Oh, and if you're still watching this talk in reverse for
-some reason...
-
-_(reversed audio plays)_
+some reason... _Tskumied ooleh!_ (reversed: "Hello, Demuxed!")
