@@ -336,31 +336,10 @@ There's still a bit of a crackle in there, so `AudioWorklet` might be worth revi
 
 ## Conclusion
 
-The thing that surprised me most about this project is how little of it was actually about "reverse" as some separate mode to design for. Buffering just needed a `forward` flag threaded through the same loop it already had. Decoding didn't need a different algorithm, just a different order to feed the very same GOPs into the very same `VideoDecoder`. Rendering didn't need to change at all: a lookup that finds "the frame that covers `currentTime`" doesn't care which direction time happens to be moving in, or what order the decoded frames happen to be sitting in.
-
-The one place reverse genuinely costs something is memory. Forward playback can decode a frame, render it, and immediately forget about it. Reverse playback has to hold an entire GOP, sometimes two, fully decoded at once, because the first frame it decodes is the last one it gets to show. That's a real tradeoff, and on a low-end device it might be the difference between smooth playback and a slideshow.
-
-And the audio bonus was a nice reminder that not all compressed media carries this baggage. Without inter-frame prediction to worry about, reversing audio really is about as simple as it sounds: decode the frames, reverse the samples, done.
+The thing that surprised me most about this project is how little of it was actually about "reverse" as some separate mode to design for. Buffering just needed a `forward` flag threaded through the same loop it already had. Decoding just needed to feed the very same GOPs into the very same `VideoDecoder` in a different order. Rendering didn't need to change at all. The one real cost is memory: reverse playback has to hold an entire GOP fully decoded at once, since the first frame it decodes is the last one it gets to show. And reversing audio, with no inter-frame prediction to worry about, turned out to be about as simple as it sounds.
 
 You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs: click the "1x" playback rate button in the controls to switch it to "-1x", and watch it play backwards. The full source, reverse playback included, is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
 
-## Further reading
-
-A few places to go next, if this got you curious:
-
-- The [WebCodecs API specification][webcodecs-spec], for the actual definitions behind `VideoDecoder`,
-  `EncodedVideoChunk`, `AudioData`, and everything else this project leaned on.
-- ["Video compression picture types"][picture-types] on Wikipedia, for more on I-, P- and B-frames and
-  why decoding order and rendering order aren't always the same thing.
-- MDN's [`playbackRate` page][playbackRate] links out, in its own "See also" section, to the relevant
-  browser bug reports and the WHATWG issue tracking negative-rate support, if you want to keep an eye
-  on (or nudge) the browsers that still don't support it.
-- [browser-compat-data][bcd], the project behind those compatibility tables from earlier in this post,
-  if you're curious how that data actually gets maintained.
-
-[webcodecs-spec]: https://w3c.github.io/webcodecs/
-[picture-types]: https://en.wikipedia.org/wiki/Video_compression_picture_types
-[bcd]: https://github.com/mdn/browser-compat-data
 [render-audio-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1111-L1171
 [schedule-audio-buffer]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1210-L1232
 [on-video-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L747-L804
