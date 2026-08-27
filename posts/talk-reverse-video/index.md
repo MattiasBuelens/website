@@ -122,6 +122,52 @@ Quick recap:
 
 We've already reimplemented buffering, decoding, and rendering video ourselves. Now, we're going to make each of those three steps run _backwards_ instead of forwards.
 
+## Step 1: buffering in reverse
+
+Every streaming player's buffering loop looks more or less the same: check whether there's enough buffered
+video ahead of `currentTime`, and if not, find the next unbuffered segment, download it, and append it.
+Repeat until there's nothing left to append.
+
+```js
+async #fillBuffer() {
+  while (true) {
+    if (this.#bufferedDurationAfter(this.currentTime) >= this.#bufferGoal) {
+      return // enough buffer ahead, nothing to do for now
+    }
+    const segment = this.#findNextSegmentAfter(this.#bufferEnd)
+    if (!segment) {
+      return // reached the last segment, we're done buffering
+    }
+    const segmentData = await this.#downloadSegment(segment)
+    this.#sourceBuffer.appendBuffer(segmentData)
+  }
+}
+```
+
+To buffer in reverse, we don't need a different algorithm, just a mirror image of this one: swap every
+"after" for "before", every "next" for "previous", and stop once we've reached the very first segment
+instead of the last one.
+
+```js
+async #fillBufferInReverse() {
+  while (true) {
+    if (this.#bufferedDurationBefore(this.currentTime) >= this.#bufferGoal) {
+      return // enough buffer behind, nothing to do for now
+    }
+    const segment = this.#findPreviousSegmentBefore(this.#bufferStart)
+    if (!segment) {
+      return // reached the first segment, we're done buffering
+    }
+    const segmentData = await this.#downloadSegment(segment)
+    this.#sourceBuffer.appendBuffer(segmentData)
+  }
+}
+```
+
+Nothing about a segment's own contents changes here, we're just walking the playlist back to front
+instead of front to back. Buffering fills up from the back of the video towards the front, ready for
+the decoder to work through in the same direction.
+
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
 [WebCodecs]: https://developer.mozilla.org/en-US/docs/Web/API/WebCodecs_API
