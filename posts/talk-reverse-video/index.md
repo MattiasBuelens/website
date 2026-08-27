@@ -124,14 +124,26 @@ We've already reimplemented buffering, decoding, and rendering video ourselves. 
 
 ## Step 1: buffering in reverse
 
-Every streaming player's buffering loop looks more or less the same: check whether there's enough buffered
-video ahead of `currentTime`, and if not, find the next unbuffered segment, download it, and append it.
-Repeat until there's nothing left to append.
+Every streaming player's buffering loop looks more or less the same:
 
-Buffering in reverse isn't a separate algorithm bolted on next to that one, it's the _same_ loop, with a
-single `forward` flag threaded through it. Whenever the loop has to decide "ahead" or "behind", "next" or
-"previous", "last" or "first", it just asks `video.playbackRate >= 0` and picks accordingly (trimmed down
-from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek):
+1. If there's enough buffer after current time, wait.
+2. Find the next segment after the end of the buffer.
+3. Download and append that segment.
+4. If it was the last segment, we're done buffering.
+5. Otherwise, repeat.
+
+To buffer in reverse, flip the direction of every one of those lookups:
+
+1. If there's enough buffer before current time, wait.
+2. Find the previous segment before the start of the buffer.
+3. Download and append that segment.
+4. If it was the first segment, we're done buffering.
+5. Otherwise, repeat.
+
+It's not really a separate algorithm bolted on next to the first one, it's the _same_ five steps, with a
+single `forward` flag threaded through them. Whenever the loop has to decide "after" or "before", "next"
+or "previous", "last" or "first", it just asks `video.playbackRate >= 0` and picks accordingly (trimmed
+down from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek):
 
 ```js
 async function fillBuffer(sourceBuffer, getSegmentForTime) {
