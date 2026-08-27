@@ -342,8 +342,25 @@ The one place reverse genuinely costs something is memory. Forward playback can 
 
 And the audio bonus was a nice reminder that not all compressed media carries this baggage. Without inter-frame prediction to worry about, reversing audio really is about as simple as it sounds: decode the frames, reverse the samples, done.
 
-You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs, and the full source, reverse playback included, is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
+You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs: click the "1x" playback rate button in the controls to switch it to "-1x", and watch it play backwards. The full source, reverse playback included, is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
 
+## Further reading
+
+A few places to go next, if this got you curious:
+
+- The [WebCodecs API specification][webcodecs-spec], for the actual definitions behind `VideoDecoder`,
+  `EncodedVideoChunk`, `AudioData`, and everything else this project leaned on.
+- ["Video compression picture types"][picture-types] on Wikipedia, for more on I-, P- and B-frames and
+  why decoding order and rendering order aren't always the same thing.
+- MDN's [`playbackRate` page][playbackRate] links out, in its own "See also" section, to the relevant
+  browser bug reports and the WHATWG issue tracking negative-rate support, if you want to keep an eye
+  on (or nudge) the browsers that still don't support it.
+- [browser-compat-data][bcd], the project behind those compatibility tables from earlier in this post,
+  if you're curious how that data actually gets maintained.
+
+[webcodecs-spec]: https://w3c.github.io/webcodecs/
+[picture-types]: https://en.wikipedia.org/wiki/Video_compression_picture_types
+[bcd]: https://github.com/mdn/browser-compat-data
 [render-audio-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1111-L1171
 [schedule-audio-buffer]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1210-L1232
 [on-video-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L747-L804
