@@ -270,7 +270,7 @@ The first step barely needs any changes: `currentTime` already advances by `play
 
 `findIndex()` doesn't care where in the array a frame lives, it just looks for whichever one's timestamp covers `currentTime`. So it doesn't matter that our decoded frames are sitting there as 4, 5, 6, 1, 2, 3 instead of 6, 5, 4, 3, 2, 1: rendering just has to look a little further into the list sometimes to find the one it wants.
 
-<video controls muted src={butterflyReversed}></video>
+<video controls muted src={reverseFixed}></video>
 
 And there it is: Big Buck Bunny, running entirely in reverse, butterfly and all.
 
@@ -330,7 +330,7 @@ Rendering uses Web Audio's `AudioBufferSourceNode`. `<baby-video>` concatenates 
 
 That buffer is then handed to an `AudioBufferSourceNode`, scheduled slightly ahead of time via [`node.start(when)`][schedule-audio-buffer] so a late scheduling call never leaves an audible gap. An `AudioWorklet` would probably do an even better job of this, but I never got around to making that work.
 
-<video controls src={reverseFixed}></video>
+<video controls src={butterflyReversed}></video>
 
 There's still a bit of a crackle in there, so `AudioWorklet` might be worth revisiting someday. But it's good enough to enjoy the ending the way it was meant to be: the butterfly comes back to life.
 
