@@ -2,7 +2,7 @@
 title: "Transcript: The curious player of Benjamin Button"
 ---
 
-_Tskumied iejaab doeg!_ (reversed: "Thank you, Demuxed!") Wait, um,
+_Tskumied, eyb doog!_ (reversed: "Good bye, Demuxed!") Wait, um,
 sorry — that's my outro slide, I think I'm still in reverse. Anyway,
 there we go.
 
