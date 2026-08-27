@@ -1,0 +1,71 @@
+<svg viewBox="0 0 620 320" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif">
+  <style>
+    .label { font-size: 16px; fill: #000; text-anchor: end; dominant-baseline: middle; }
+    .frame-label { font-size: 16px; fill: #1e293b; text-anchor: middle; dominant-baseline: middle; font-weight: 600; }
+    .decoder-label { font-size: 15px; fill: #fff; text-anchor: middle; dominant-baseline: middle; font-weight: 600; }
+    .gop-label { font-size: 14px; fill: #000; text-anchor: middle; dominant-baseline: middle; font-weight: 600; }
+    .slate { fill: #cbd5e1; stroke: #64748b; stroke-width: 2; }
+    .amber { fill: #fde68a; stroke: #d97706; stroke-width: 2; }
+    .decoder { fill: #0d9488; stroke: #0f766e; stroke-width: 2; }
+    .arrow { stroke: #64748b; stroke-width: 2.5; fill: none; }
+    .arrowhead { fill: #64748b; }
+    .gop-bracket { stroke: #64748b; stroke-width: 1.5; fill: none; }
+
+    @media (prefers-color-scheme: dark) {
+      .label { fill: #e2e8f0; }
+      .gop-label { fill: #e2e8f0; }
+      .arrow { stroke: #94a3b8; }
+      .arrowhead { fill: #94a3b8; }
+      .gop-bracket { stroke: #94a3b8; }
+    }
+  </style>
+
+  <!-- GOP group brackets -->
+  <polyline class="gop-bracket" points="210,28 210,22 394,22 394,28"/>
+  <text class="gop-label" x="302" y="16">GOP 1</text>
+  <polyline class="gop-bracket" points="402,28 402,22 586,22 586,28"/>
+  <text class="gop-label" x="494" y="16">GOP 2</text>
+
+  <text class="label" x="200" y="85">Encoded frames:</text>
+  <g>
+    <rect class="slate" x="210" y="60" width="56" height="50"/>
+    <rect class="slate" x="274" y="60" width="56" height="50"/>
+    <rect class="slate" x="338" y="60" width="56" height="50"/>
+    <rect class="amber" x="402" y="60" width="56" height="50"/>
+    <rect class="amber" x="466" y="60" width="56" height="50"/>
+    <rect class="amber" x="530" y="60" width="56" height="50"/>
+    <text class="frame-label" x="238" y="86">1</text>
+    <text class="frame-label" x="302" y="86">2</text>
+    <text class="frame-label" x="366" y="86">3</text>
+    <text class="frame-label" x="430" y="86">4</text>
+    <text class="frame-label" x="494" y="86">5</text>
+    <text class="frame-label" x="558" y="86">6</text>
+  </g>
+
+  <!-- Decoding starts at frame 4, the start of GOP 2 -->
+  <line class="arrow" x1="430" y1="110" x2="430" y2="147"/>
+  <polygon class="arrowhead" points="430,152 424,140 436,140"/>
+
+  <rect class="decoder" x="375" y="150" width="110" height="40"/>
+  <text class="decoder-label" x="430" y="171">VideoDecoder</text>
+
+  <!-- Frame 4 comes out decoded first, landing at the front of the decoded frames row -->
+  <polyline class="arrow" points="430,190 430,225 238,225 238,247"/>
+  <polygon class="arrowhead" points="238,252 232,240 244,240"/>
+
+  <text class="label" x="200" y="275">Decoded frames:</text>
+  <g>
+    <rect class="amber" x="210" y="250" width="56" height="50"/>
+    <rect class="amber" x="274" y="250" width="56" height="50"/>
+    <rect class="amber" x="338" y="250" width="56" height="50"/>
+    <rect class="slate" x="402" y="250" width="56" height="50"/>
+    <rect class="slate" x="466" y="250" width="56" height="50"/>
+    <rect class="slate" x="530" y="250" width="56" height="50"/>
+    <text class="frame-label" x="238" y="276">4</text>
+    <text class="frame-label" x="302" y="276">5</text>
+    <text class="frame-label" x="366" y="276">6</text>
+    <text class="frame-label" x="430" y="276">1</text>
+    <text class="frame-label" x="494" y="276">2</text>
+    <text class="frame-label" x="558" y="276">3</text>
+  </g>
+</svg>
