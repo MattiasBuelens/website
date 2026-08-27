@@ -1,5 +1,5 @@
 ---
-title: "Talk: The curious player of Benjamin Button: reverse video on the web"
+title: 'Talk: The curious player of Benjamin Button: reverse video on the web'
 date: 2026-08-27T00:00:00+02:00
 ---
 

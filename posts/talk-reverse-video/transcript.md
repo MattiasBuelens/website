@@ -1,5 +1,5 @@
 ---
-title: "Transcript: The curious player of Benjamin Button"
+title: 'Transcript: The curious player of Benjamin Button'
 ---
 
 _Tskumied, eyb doog!_ (reversed: "Good bye, Demuxed!") Wait, um,
@@ -60,9 +60,9 @@ If you don't, you find the next segment that goes after your end of
 buffer, you download and append that, and if it's the last segment then
 you're done buffering, otherwise just repeat, go back to the top. We
 want to do this in reverse, so we just find-and-replace a couple of
-things: we need to check for enough buffer *before* current time, we
-need to find the *previous* segment, and we're only done when we reach
-the *first* segment. This way, we'll buffer from the back of the video
+things: we need to check for enough buffer _before_ current time, we
+need to find the _previous_ segment, and we're only done when we reach
+the _first_ segment. This way, we'll buffer from the back of the video
 all the way to the front.
 
 Great, so we've got that, we have appended our fMP4 segments, we've
