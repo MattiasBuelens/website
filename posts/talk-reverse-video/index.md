@@ -207,7 +207,17 @@ That is not how Big Buck Bunny is supposed to look. As video engineers, we've al
 
 The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess.
 
+<figure>
+
 <video muted autoplay loop src={motionVectors}></video>
+
+<figcaption>
+
+Inter-frame prediction in action: arrows showing where each macroblock moved from in the previous frame, plus a small residual to correct whatever that motion alone didn't capture.
+
+</figcaption>
+
+</figure>
 
 So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
 
@@ -228,13 +238,13 @@ To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 
 
 ## Step 3: rendering in reverse
 
-The decoder is fixed, but its output is still not something you'd want to look at directly: frames now come out grouped by GOP instead of by playback order, 4, 5, 6, 1, 2, 3 instead of the 6, 5, 4, 3, 2, 1 we actually want to show. Untangling that mess is rendering's job.
+The decoder is fixed, but its output is still not something you'd want to look at directly: frames now come out grouped by GOP instead of by playback order, 4, 5, 6, 1, 2, 3 instead of the 6, 5, 4, 3, 2, 1 we actually want to show. Untangling that mess is the renderer's job.
 
 On every `requestAnimationFrame()`:
 
-- Decrease `currentTime` by the elapsed wall-clock time.
-- Find the decoded frame at `currentTime`.
-- Draw that frame to the `<canvas>`.
+1. Decrease `currentTime` by the elapsed wall-clock time.
+2. Find the decoded frame at `currentTime`.
+3. Draw that frame to the `<canvas>`.
 
 The first step barely needs any changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so once `playbackRate` is negative, `currentTime` just ticks downwards on its own. The second step is where the reordering from Step 2 actually gets resolved, in [`#renderVideoFrame()`][render-frame]:
 
