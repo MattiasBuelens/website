@@ -280,7 +280,7 @@ Fix merged to M89 Beta
 
 <TimelineItem date="2021-02-04" href="https://issues.chromium.org/issues/40054566#comment30">
 
-Fix merged to M88 Stable
+Fix merged to [M88 Stable](https://chromereleases.googleblog.com/2021/02/stable-channel-update-for-desktop_4.html)
 
 </TimelineItem>
 
