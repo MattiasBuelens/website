@@ -13,6 +13,7 @@ import BaselineStatus from "#lib/components/BaselineStatus.svelte";
 import Transcript from "./transcript.md";
 import reversePlaybackSafari from "./reverse-playback-safari.mp4";
 import reverseGlitched from "./reverse-glitched.mp4";
+import butterflyReversed from "./butterfly-reversed.mp4";
 </script>
 
 ## Watch the talk
@@ -222,6 +223,44 @@ To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 
 
 </figure>
 
+## Step 3: rendering in reverse
+
+The decoder is fixed, but its output is still not something you'd want to look at directly: frames now come out grouped by GOP instead of by playback order, 4, 5, 6, 1, 2, 3 instead of the 6, 5, 4, 3, 2, 1 we actually want to show. Untangling that mess is rendering's job.
+
+On every `requestAnimationFrame()`:
+
+- Decrease `currentTime` by the elapsed wall-clock time.
+- Find the decoded frame at `currentTime`.
+- Draw that frame to the `<canvas>`.
+
+The first step barely needs any changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so once `playbackRate` is negative, `currentTime` just ticks downwards on its own. The second step is where the reordering from Step 2 actually gets resolved, in [`#renderVideoFrame()`][render-frame]:
+
+```js
+#renderVideoFrame() {
+  const currentTimeInMicros = Math.floor(1e6 * this.currentTime)
+
+  // Find the frame whose timestamp range contains currentTime.
+  const currentFrameIndex = this.#decodedVideoFrames.findIndex(
+    (frame) =>
+      frame.timestamp <= currentTimeInMicros &&
+      currentTimeInMicros < frame.timestamp + frame.duration
+  )
+  if (currentFrameIndex < 0) {
+    return // still decoding, nothing to render yet
+  }
+
+  const frame = this.#decodedVideoFrames[currentFrameIndex]
+  this.#canvasContext.drawImage(frame, 0, 0, frame.displayWidth, frame.displayHeight)
+}
+```
+
+`findIndex()` doesn't care where in the array a frame lives, it just looks for whichever one's timestamp covers `currentTime`. So it doesn't matter that our decoded frames are sitting there as 4, 5, 6, 1, 2, 3 instead of 6, 5, 4, 3, 2, 1: rendering just has to look a little further into the list sometimes to find the one it wants.
+
+<video controls muted src={butterflyReversed}></video>
+
+And there it is: Big Buck Bunny, running entirely in reverse, butterfly and all.
+
+[render-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L814-L858
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
 [playbackRate-compat]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate#browser_compatibility
