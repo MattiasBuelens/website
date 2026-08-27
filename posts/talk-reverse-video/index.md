@@ -273,6 +273,18 @@ The first step barely needs any changes: `currentTime` already advances by `play
 
 And there it is: Big Buck Bunny, running entirely in reverse, butterfly and all.
 
+## Challenges
+
+Getting this working exposed a couple of memory challenges that forward playback never has to deal with.
+
+The first one comes straight out of Step 2: to decode frame 6, we first had to decode frames 4 and 5. That means the _first_ frame we decode out of a GOP is the _last_ one we get to render, so the whole GOP has to sit around fully decoded in the meantime. That's a problem, because the GPU can only hold on to a handful of fully decoded frames at once. The workaround is to copy each frame out of GPU memory and back into it when it's actually needed, via [`createImageBitmap()`][on-video-frame]: less efficient than leaving frames where they are, but it works well enough.
+
+The second one is about staying ahead: by the time we render the first frame of a GOP, we'd better already have the next frame ready to go, which is the _last_ frame of the _previous_ GOP. So that GOP needs to be decoded well in advance too. `<baby-video>` doesn't special-case this for GOPs specifically, it just always tries to keep a healthy [buffer of decoded frames][decode-video-frames] ahead of the current position, which happens to cover this case as a side effect, at the cost of using even more memory.
+
+None of this is a problem on a desktop with plenty of RAM and a fast GPU, but it might not play as smoothly on a lower-end smartphone. Sorry. You can try downloading more RAM.
+
+[on-video-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L747-L804
+[decode-video-frames]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L650-L699
 [render-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L814-L858
 [demo-app]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/demo/app.ts#L121-L188
 [playbackRate]: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/playbackRate
