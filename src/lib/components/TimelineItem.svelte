@@ -73,11 +73,6 @@
       background-color: var(--color-teal-500);
     }
 
-    /*
-      `dark` appends `:where(.dark, .dark *)` to `&`, so it has to sit on the
-      item rather than on its pseudo-elements. `:where()` adds no specificity,
-      so this has to come after the rules it overrides.
-    */
     @variant dark {
       &:not(:last-child)::before {
         background-color: var(--color-zinc-700);
