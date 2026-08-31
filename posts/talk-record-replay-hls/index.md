@@ -302,6 +302,24 @@ recording for as long as you need to -- no VPN or camera needed. Or flip it arou
 stream that's hard to get to, it's you, stuck on a plane with no network at all. Either way, record it once
 while you have the chance, and you can take your time working the problem afterwards.
 
+## Future work
+
+streamrr does what I need today, but there are a few directions I'd still like to take it:
+
+- **More protocols.** Right now it's HLS-only, but MPEG-DASH would actually be easier: a DASH manifest can
+  carry a `<UTCTiming>` element, which tells the player what time it should treat as "now". Point that at a
+  point in the past, and the player happily believes it's still watching live, no rewriting required. HLS
+  has no equivalent, which is why streamrr has to fake that same trick itself, by rewriting the playlists
+  and stamping its own `start` timestamp onto the very first request.
+- **Importing recordings, not just creating them.** Running `streamrr record` next to the real player works
+  fine, but it's not always the easiest way to get a recording: a stream might need some complicated
+  browser-only authentication, or a customer might have already handed you a HAR export from Chrome
+  DevTools without you having to ask. A `streamrr import` command, [currently in the works][import-pr],
+  would read that `.har` file straight into a recording, in the exact same format `record` produces.
+- **Maybe this shouldn't be a CLI at all?** Making HTTP requests, parsing HLS playlists and storing files
+  are all things a web app can do too, so recording (and maybe even replaying) could someday live entirely
+  in the browser.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
@@ -314,3 +332,4 @@ while you have the chance, and you can take your time working the problem afterw
 [Warp]: https://docs.rs/warp
 [replay]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L36-L88
 [playlist_path_at_time]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L92-L106
+[import-pr]: https://github.com/THEOplayer/streamrr/pull/9
