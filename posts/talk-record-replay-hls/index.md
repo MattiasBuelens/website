@@ -3,8 +3,8 @@ title: 'Talk: VHS for the streaming era: record and replay for HLS'
 date: 2026-08-31T00:00:00+02:00
 ---
 
-At [Demuxed 2025](https://2025.demuxed.com/), I presented a talk about how I build a record and replay tool for HLS streams.
-You can watch the talk below, and read along for (much) more details about why and how I built this.
+At [Demuxed 2025](https://2025.demuxed.com/), I presented streamrr, a small Rust tool I built to record a live HLS stream, playlists and segments included, and replay it later exactly as it happened.
+Watch the talk below, or read on for the full breakdown of how it all works under the hood.
 
 <script>
 import Video from "#lib/components/Video.svelte";
