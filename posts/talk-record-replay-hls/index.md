@@ -87,8 +87,10 @@ Since there wasn't a tool that did exactly what I needed, I did the only logical
 ## Introducing streamrr
 
 The result is [streamrr], a small command-line tool for recording and replaying HLS streams [written in
-Rust][main.rs] (mostly because I wanted an excuse to use it). As for the name: I'm terrible at naming things,
-as usual. It boils down to two commands, `record` and `replay`:
+Rust][main.rs] (mostly because I wanted an excuse to use it). As for the name: it's a nod to Mozilla's [rr],
+a record-and-replay debugger for native Linux programs. Since I'm terrible at naming things, I just stole their name.
+
+`streamrr` comes with two main commands, `record` and `replay`:
 
 ```bash
 $ streamrr record https://example.com/mystream.m3u8 recordings/mystream/
@@ -103,7 +105,7 @@ $ streamrr replay recordings/mystream/
 Replay server listening on http://127.0.0.1:8080/
 ```
 
-`streamrr record` takes the URL of an HLS stream and a directory to record into. It downloads the master
+`streamrr record` takes the URL of an HLS stream and a directory to record into. It downloads the multivariant
 playlist, then keeps following it: for a VOD stream, that means walking through every media playlist and
 segment until there's nothing left to download; for a live stream, it just keeps polling for new segments
 until you tell it to stop with `Ctrl+C`. Either way, once it's done, `recordings/mystream/` holds an exact,
@@ -111,13 +113,14 @@ replayable copy of what was on the wire.
 
 `streamrr replay` takes that same directory and spawns a local HTTP server, serving the recording back out
 as an HLS stream at `http://127.0.0.1:8080/`. Point any player you like at that URL, and as far as the
-player is concerned, it's talking to the original stream all over again.
+player is concerned, it's playing the original stream all over again.
 
-That's the pitch in a nutshell. The interesting part is what has to happen behind those two commands to
-actually make a recording replayable, which is where the HLS-specific work comes in.
+That's the pitch in a nutshell. The interesting part is what has to happen behind the scenes to
+actually make a recording that will faithfully replay just like the original stream.
 
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
 [streamrr]: https://github.com/THEOplayer/streamrr
+[rr]: https://rr-project.org/
 [main.rs]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/main.rs#L33-L80
