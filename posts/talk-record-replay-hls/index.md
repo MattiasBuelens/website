@@ -84,6 +84,40 @@ afford to lose.
 
 Since there wasn't a tool that did exactly what I needed, I did the only logical thing: I built one myself! 😁
 
+## Introducing streamrr
+
+The result is [streamrr], a small command-line tool for recording and replaying HLS streams [written in
+Rust][main.rs] (mostly because I wanted an excuse to use it). As for the name: I'm terrible at naming things,
+as usual. It boils down to two commands, `record` and `replay`:
+
+```bash
+$ streamrr record https://example.com/mystream.m3u8 recordings/mystream/
+Download: https://example.com/mystream.m3u8
+Download: https://example.com/video/1920_6/init.mp4
+Download: https://example.com/video/1920_6/14654.m4s
+Download: https://example.com/audio/257/init.mp4
+Download: https://example.com/audio/257/12540.m4s
+^C
+
+$ streamrr replay recordings/mystream/
+Replay server listening on http://127.0.0.1:8080/
+```
+
+`streamrr record` takes the URL of an HLS stream and a directory to record into. It downloads the master
+playlist, then keeps following it: for a VOD stream, that means walking through every media playlist and
+segment until there's nothing left to download; for a live stream, it just keeps polling for new segments
+until you tell it to stop with `Ctrl+C`. Either way, once it's done, `recordings/mystream/` holds an exact,
+replayable copy of what was on the wire.
+
+`streamrr replay` takes that same directory and spawns a local HTTP server, serving the recording back out
+as an HLS stream at `http://127.0.0.1:8080/`. Point any player you like at that URL, and as far as the
+player is concerned, it's talking to the original stream all over again.
+
+That's the pitch in a nutshell. The interesting part is what has to happen behind those two commands to
+actually make a recording replayable, which is where the HLS-specific work comes in.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
+[streamrr]: https://github.com/THEOplayer/streamrr
+[main.rs]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/main.rs#L33-L80
