@@ -320,6 +320,18 @@ streamrr does what I need today, but there are a few directions I'd still like t
   are all things a web app can do too, so recording (and maybe even replaying) could someday live entirely
   in the browser.
 
+## Conclusion
+
+What surprised me most was how little "record and replay" turned out to be about HLS itself. The entire
+trick comes down to two small pieces of bookkeeping: download and rewrite every URL you see to a local
+file, and offset all playlist requests by a timestamp to make the replay feel "live".
+
+What I'm most proud of, though, is that streamrr is now regularly used to solve real customer issues. Not
+bad for a quick hack that was originally supposed to get thrown away right after the talk.
+
+streamrr is [on GitHub][streamrr], open source, and just [one `cargo install` away][install]. Give it a try
+the next time one of your HLS streams is giving you a hard time.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
@@ -333,3 +345,4 @@ streamrr does what I need today, but there are a few directions I'd still like t
 [replay]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L36-L88
 [playlist_path_at_time]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L92-L106
 [import-pr]: https://github.com/THEOplayer/streamrr/pull/9
+[install]: https://theoplayer.github.io/streamrr/
