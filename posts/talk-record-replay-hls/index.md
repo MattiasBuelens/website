@@ -67,12 +67,12 @@ the original customer, their network, or their daughter's iPad. Not just the vid
 every segment, so you can point any HLS player at it and watch the bug happen again, on demand, as many
 times as it takes to find it.
 
-Surely something like this already exists? Tools like Wireshark or Chrome DevTools can record all the HTTP
-traffic during a playback session, which gets you most of the way there: you can inspect every request and
-every response after the fact. But there's no way to take that recording and feed it back into a real
+Surely something like this already exists? Tools like [Wireshark] or [Chrome DevTools] can record all the
+HTTP traffic during a playback session, which gets you most of the way there: you can inspect every request
+and every response after the fact. But there's no way to take that recording and feed it back into a real
 player. Once you've captured it, that's as far as it goes.
 
-FFmpeg looked more promising, since it can both consume and produce a stream. The problem is that FFmpeg
+[FFmpeg] looked more promising, since it can both consume and produce a stream. The problem is that FFmpeg
 is built for frames, not playlists: point it at an HLS stream to record and replay it, and FFmpeg demuxes
 and remuxes everything along the way. The playlists you get back look nothing like the originals, and the
 segments have been repackaged from scratch. If the bug you're chasing was actually caused by a broken
@@ -81,3 +81,7 @@ afford to lose.
 
 So there wasn't a tool that did what I needed: capture an HLS stream byte-for-byte, playlists and all, and
 serve it back later as if it were live again. I couldn't find one, so I built one instead.
+
+[Wireshark]: https://www.wireshark.org/
+[Chrome DevTools]: https://developer.chrome.com/docs/devtools
+[FFmpeg]: https://ffmpeg.org/
