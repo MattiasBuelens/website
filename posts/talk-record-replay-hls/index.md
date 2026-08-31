@@ -1,6 +1,6 @@
 ---
 title: 'Talk: VHS for the streaming era: record and replay for HLS'
-date: 2026-08-31T00:00:00+02:00
+date: 2026-08-31T19:00:00+02:00
 ---
 
 At [Demuxed 2025](https://2025.demuxed.com/), I presented [streamrr], a small Rust tool I built to record a live HLS stream, playlists and segments included, and replay it later exactly as it happened.
