@@ -249,6 +249,39 @@ recording time, and they never change afterwards, so the server just hands them 
 Put it all together, and `streamrr replay` can make a five-minute-old recording look exactly like a live
 stream that just started: point any player at it, and it can't tell the difference.
 
+## Stories from the lab
+
+Of course, the proof is in the pudding: does any of this actually help? Once streamrr worked, I handed it
+to other developers and support engineers to see what they'd do with it. Two stories in particular stuck
+with me.
+
+### An audio/video desync
+
+One engineer was chasing an occasional audio/video desync that only showed up right at the start of a
+livestream, and only sometimes. Tracking it down meant refreshing the page over and over, waiting to see
+whether that particular attempt happened to desync, and then trying to read something useful out of it
+before the moment was gone.
+
+Instead, they ran `streamrr record` alongside their usual refreshing, and simply kept it running until a
+desync showed up, then stopped the recording right there. Since the recording only had to happen once, from
+that point on they had a `streamrr replay` stream that desynced the exact same way, every single time they
+played it. That turned a debugging session that depended on luck into one they could just run again and
+again, tweaking one thing at a time, until they found the actual root cause.
+
+### A regression test from a rare edge case
+
+Another report came from a customer using server-side ad insertion (SSAI): on certain ad breaks, at certain
+seek times, the player would stall indefinitely. The engineer who picked it up eventually traced it back to
+how the player handled `#EXT-X-DISCONTINUITY` tags, the markers HLS uses to signal a switch between, say,
+the main content and an ad. In this particular edge case, the player ended up believing the video track was
+still in the main content while the audio track had already crossed into the ad, and got stuck reconciling
+the two.
+
+Once they had a recording that reliably reproduced the bug, they didn't just use it to fix the player: they
+uploaded the recording to the team's own test streams and turned it straight into a regression test. That
+locked the fix in for good, and as a bonus, the test no longer depends on the original SSAI stream still
+being around: the recording _is_ the test fixture now.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
