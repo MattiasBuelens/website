@@ -55,11 +55,14 @@ You can't exactly leave that for Monday, so you open it up to see what's going o
 
 You read further, and the details get more specific than you'd like: the stream stalls on the second ad
 of an ad break, in your boss's office in Australia, on their daughter's iPad, but only the night before a
-full moon. Somehow, this is now your problem to solve. Where do you even start? You could schedule a
-screen-sharing session, though you're not sure that even works reliably on an iPad. You could turn on
-every log you have and hope the answer is buried somewhere in the haystack. You could ask for the iPad to
-be shipped to your office, though the kid might have some objections. Or you could just book a flight to
-Australia and see it with your own eyes. None of that sounds particularly appealing.
+full moon. Somehow, this is now your problem to solve. Where do you even start?
+
+- You could schedule a screen-sharing session, though you're not sure that even works reliably on an iPad.
+- You could turn on every log you have and hope the answer is buried somewhere in the haystack.
+- You could ask for the iPad to be shipped to your office, though the kid might have some objections.
+- You could just book a flight to Australia and see it with your own eyes.
+
+None of those options sounds particularly appealing... 😕
 
 What you actually want sits somewhere between a screen recording and a log file: a way to capture the
 entire stream exactly as the player saw it, and play it back later, on your own machine, without needing
@@ -79,8 +82,7 @@ segments have been repackaged from scratch. If the bug you're chasing was actual
 packager upstream, FFmpeg quietly papers over it for you, which is exactly the kind of detail you can't
 afford to lose.
 
-So there wasn't a tool that did what I needed: capture an HLS stream byte-for-byte, playlists and all, and
-serve it back later as if it were live again. I couldn't find one, so I built one instead.
+Since there wasn't a tool that did exactly what I needed, I did the only logical thing: I built one myself! 😁
 
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
