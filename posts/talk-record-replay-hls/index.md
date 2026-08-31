@@ -199,6 +199,56 @@ original URL around as an `X-ORIGINAL-*` tag or attribute. By the time a recordi
 on disk points only at other files inside that same recording, but nothing about where the stream actually
 came from has been lost.
 
+## Replaying a recording
+
+`streamrr replay` spins up a small [Warp]-based HTTP server, in [`replay()`][replay], that turns the files
+on disk back into something an HLS player can consume. The interesting part is faking "live": since the
+recording is a sequence of timestamped playlist snapshots, replay has to figure out, at any given moment
+during playback, which one of those snapshots the player should be seeing.
+
+That starts the moment a player requests the multivariant playlist for the very first time. If the request
+doesn't carry a `start` query parameter yet, the server treats that as "the session is starting right now":
+it redirects the player to the same URL with `?start=<timestamp>` appended, where the timestamp is just the
+current time in milliseconds. Every request that follows, for every variant and rendition playlist, carries
+that same `start` value along with it, because the rewritten multivariant playlist adds it to every variant
+and rendition URI it points to.
+
+From there, figuring out which recorded playlist to serve is just arithmetic, in
+[`playlist_path_at_time`][playlist_path_at_time]:
+
+```rust
+fn playlist_path_at_time(
+    playlist_name: &str,
+    recording: &Recording,
+    recording_start: DateTime<Utc>,
+    client_start: DateTime<Utc>,
+) -> Option<PathBuf> {
+    // At T = client_start + offset, serve the playlist recorded at recording_start + offset.
+    let offset = Utc::now() - client_start;
+    let recording_time = recording_start + offset;
+    let (_, relative_path) = recording.find_latest_before(playlist_name, recording_time)?;
+    Some(PathBuf::from(relative_path))
+}
+```
+
+However much real time has passed since the player's `start` timestamp, that same amount of time gets added
+to the recording's own start time, and whichever playlist snapshot was captured closest to (but not after)
+that point in the recording is the one that gets served. Play the replayed stream for thirty seconds, and
+you'll see the same sequence of playlist updates a viewer would have seen thirty seconds into the original
+live broadcast, no matter when you actually pressed play. (If nothing was recorded yet at that offset, say,
+the player asks before the very first playlist was ever downloaded, it just falls back to the earliest
+snapshot instead.)
+
+There's one more bit of cleanup before a playlist goes out the door: the `#EXT-X-ORIGINAL-URI` tags and
+their friends from the recording step get stripped back out again, so the player only ever sees the segment
+references it actually needs, not the bookkeeping streamrr added along the way.
+
+Segments, initialization files and keys need none of this: their file names were already decided once, at
+recording time, and they never change afterwards, so the server just hands them straight off disk.
+
+Put it all together, and `streamrr replay` can make a five-minute-old recording look exactly like a live
+stream that just started: point any player at it, and it can't tell the difference.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
@@ -208,3 +258,6 @@ came from has been lost.
 [record_master_playlist]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/record/mod.rs#L69-L191
 [record_media_playlist]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/record/mod.rs#L193-L268
 [rewrite_segment]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/record/rewrite.rs#L39-L85
+[Warp]: https://docs.rs/warp
+[replay]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L36-L88
+[playlist_path_at_time]: https://github.com/THEOplayer/streamrr/blob/6a1bab9/src/replay/mod.rs#L92-L106
