@@ -282,6 +282,26 @@ uploaded the recording to the team's own test streams and turned it straight int
 locked the fix in for good, and as a bonus, the test no longer depends on the original SSAI stream still
 being around: the recording _is_ the test fixture now.
 
+## More ways to use it
+
+Both of those stories share the same shape: something rare and awkward to catch live becomes trivial to
+debug once you can replay it on demand. That pattern shows up in a few other places too.
+
+Discontinuities in general are a good source of these bugs: `#EXT-X-DISCONTINUITY` tags show up wherever a
+stream splices in an ad break, switches encoders, or otherwise breaks the assumption that timestamps keep
+increasing smoothly, and players don't always agree on how to handle that moment. The same goes for the
+other end of a live stream's life: when it ends and the playlist gets an `#EXT-X-ENDLIST` tag, turning a
+live stream into VOD, a player can sometimes be caught off guard by that transition too. Either way, a
+recording captures the exact moment things get weird, so you don't have to sit around waiting for it to
+happen again.
+
+Then there's streams you simply can't get to whenever you want. Maybe access requires a VPN, or
+credentials that only last for a couple of days. Maybe the "stream" is quite literally a camera in a
+customer's office that someone has to walk over and switch on. Record it once, and you can debug that
+recording for as long as you need to -- no VPN or camera needed. Or flip it around: maybe it's not the
+stream that's hard to get to, it's you, stuck on a plane with no network at all. Either way, record it once
+while you have the chance, and you can take your time working the problem afterwards.
+
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
 [FFmpeg]: https://ffmpeg.org/
