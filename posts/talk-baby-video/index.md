@@ -3,8 +3,8 @@ title: "Talk: Baby's first HTML5 <video> element"
 date: 2026-08-23T18:30:00+02:00
 ---
 
-At [Demuxed 2022](https://2022.demuxed.com/), I presented a talk about how I re-built the HTML5 `<video>` element using [Custom Elements] and [WebCodecs].
-You can watch the talk below, and read along for (much) more details about why and how I built this crazy contraption.
+At [Demuxed 2022](https://2022.demuxed.com/), I gave a talk about rebuilding the HTML5 `<video>` element from scratch, buffering, decoding and rendering video myself with [Custom Elements] and [WebCodecs] instead of an actual `<video>` tag.
+Watch the talk below, or keep reading for the full story of why (and how) I built this crazy contraption.
 
 <script>
 import Video from "#lib/components/Video.svelte";

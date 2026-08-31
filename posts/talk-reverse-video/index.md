@@ -3,8 +3,8 @@ title: 'Talk: The curious player of Benjamin Button: reverse video on the web'
 date: 2026-08-27T17:00:00+02:00
 ---
 
-At [Demuxed 2023](https://2023.demuxed.com/), I presented a talk about how I extended [baby's first HTML5 `<video>` element](/post/talk-baby-video/) to support reverse playback.
-You can watch the talk below, and read along for more details about why and how I built this.
+At [Demuxed 2023](https://2023.demuxed.com/), I came back with a sequel: taking [baby's first HTML5 `<video>` element](/post/talk-baby-video/) and teaching it to play video, and audio, backwards, frame by frame.
+Watch the talk below, or stick around for the play-by-play of how I pulled it off.
 
 <script>
 import Video from "#lib/components/Video.svelte";
