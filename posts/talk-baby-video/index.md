@@ -3,7 +3,7 @@ title: "Talk: Baby's first HTML5 <video> element"
 date: 2026-08-23T18:30:00+02:00
 ---
 
-At [Demuxed 2022](https://2022.demuxed.com/), I gave a talk about rebuilding the HTML5 `<video>` element from scratch, buffering, decoding and rendering video myself with [Custom Elements] and [WebCodecs] instead of an actual `<video>` tag.
+At [Demuxed 2022](https://2022.demuxed.com/), I gave a talk about rebuilding the HTML5 `<video>` element from scratch, buffering, decoding and rendering video myself with [Custom Elements] and [WebCodecs].
 Watch the talk below, or keep reading for the full story of why (and how) I built this crazy contraption.
 
 <script>
