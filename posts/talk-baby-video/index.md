@@ -18,12 +18,12 @@ import Transcript from "./transcript.md";
 <figure>
 
 <Video
-src="https://www.youtube.com/watch?v&equals;OBhlTcllq_E&list&equals;PLkyaYNWEKcOf98lZxnCcL6y7ZIVU3oSYO&index&equals;8"
+src="https://www.youtube.com/watch?v&equals;OBhlTcllq_E&list&equals;PLkyaYNWEKcOf98lZxnCcL6y7ZIVU3oSYO&index&equals;7"
 title="Video of recording at Demuxed 2022"></Video>
 
 <figcaption>
 
-[Watch on YouTube](https://www.youtube.com/watch?v=OBhlTcllq_E&list=PLkyaYNWEKcOf98lZxnCcL6y7ZIVU3oSYO&index=8)
+[Watch on YouTube](https://www.youtube.com/watch?v=OBhlTcllq_E&list=PLkyaYNWEKcOf98lZxnCcL6y7ZIVU3oSYO&index=7)
 
 </figcaption>
 
@@ -512,10 +512,11 @@ and _what to throw away_. Skipping duplicate chunks, going back to a keyframe af
 GOPs before the buffer fills up, not switching quality too close to `currentTime`: you don't think about
 any of that when you only consider the happy path, but all of it matters.
 
-Finally, WebCodecs held up well. This was my first real project with it, and even though it's still a
+Finally, WebCodecs held up well. This was my first real project with it, and even though it was still a
 fairly young and low-level API, it did everything I asked of it, including using the browser's
-hardware-accelerated decoders. I'd love to see it land in more browsers, so that experiments like this
-one don't have to stay Chrome-only party tricks.
+hardware-accelerated decoders. At the time of the talk, it only worked in Chromium-based browsers, so
+experiments like this one were mostly Chrome-only party tricks. Since then, Safari and Firefox have
+caught up, so you can now try `<baby-video>` in Chrome, Safari and Firefox.
 
 ## Further reading
 
