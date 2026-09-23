@@ -3,8 +3,8 @@ title: 'Talk: VHS for the streaming era: record and replay for HLS'
 date: 2026-08-31T19:00:00+02:00
 ---
 
-At [Demuxed 2025](https://2025.demuxed.com/), I presented [streamrr], a small Rust tool I built to record a live HLS stream, playlists and segments included, and replay it later exactly as it happened.
-Watch the talk below, or read on for the full breakdown of how it all works under the hood.
+At [Demuxed 2025](https://2025.demuxed.com/), I presented [streamrr], a small Rust tool that records an HLS stream (playlists, segments and all) and replays it later, exactly as it happened.
+Watch the talk below, or read on to find out how it works under the hood.
 
 <script>
 import Video from "#lib/components/Video.svelte";
@@ -50,47 +50,44 @@ title="Slides"></Iframe>
 ## Motivation
 
 Picture this: it's Friday afternoon, you're several coffees in, and you're fully in the zone.
-Then a notification pops up: your most important customer just opened a ticket. "My livestream stalls."
-You can't exactly leave that for Monday, so you open it up to see what's going on.
+Then a notification pops up. Your most important customer just opened a ticket: "My livestream stalls."
+You can't exactly leave that until Monday, so you open it to see what's going on.
 
-You read further, and the details get more specific than you'd like: the stream stalls on the second ad
-of an ad break, in your boss's office in Australia, on their daughter's iPad, but only the night before a
-full moon. Somehow, this is now your problem to solve. Where do you even start?
+The details are more specific than you'd like. The stream stalls on the second ad of an ad break, in
+the customer's office in Australia, on their boss's daughter's iPad, but only the night before a full moon.
+Somehow, this is now your problem. Where do you even start?
 
-- You could schedule a screen-sharing session, though you're not sure that even works reliably on an iPad.
+- You could schedule a screen-sharing session, though you're not sure that even works on an iPad.
 - You could turn on every log you have and hope the answer is buried somewhere in the haystack.
 - You could ask for the iPad to be shipped to your office, though the kid might have some objections.
-- You could just book a flight to Australia and see it with your own eyes.
+- You could book a flight to Australia and see it with your own eyes.
 
-None of those options sounds particularly appealing... 😕
+None of those options sound particularly appealing... 😕
 
-What you actually want sits somewhere between a screen recording and a log file: a way to capture the
-entire stream exactly as the player saw it, and play it back later, on your own machine, without needing
-the original customer, their network, or their daughter's iPad. Not just the video, but every playlist and
-every segment, so you can point any HLS player at it and watch the bug happen again, on demand, as many
-times as it takes to find it.
+What you want is somewhere between a screen recording and a log file: a way to capture the entire
+stream exactly as the player saw it, and play it back later on your own machine, without the customer,
+their network or the iPad. Not just the video, but every playlist and every segment, so you can point any
+HLS player at it and watch the bug happen again, as many times as it takes to find it.
 
-Surely something like this already exists? Tools like [Wireshark] or [Chrome DevTools] can record all the
-HTTP traffic during a playback session, which gets you most of the way there: you can inspect every request
-and every response after the fact. But there's no way to take that recording and feed it back into a real
-player. Once you've captured it, that's as far as it goes.
+Surely something like this already exists? Tools like [Wireshark] or [Chrome DevTools] can record all
+HTTP traffic during a playback session, which gets you most of the way there: you can inspect every
+request and response after the fact. But you can't feed that recording back into a real player.
 
-[FFmpeg] looked more promising, since it can both consume and produce a stream. The problem is that FFmpeg
-is built for frames, not playlists: point it at an HLS stream to record and replay it, and FFmpeg demuxes
-and remuxes everything along the way. The playlists you get back look nothing like the originals, and the
-segments have been repackaged from scratch. If the bug you're chasing was actually caused by a broken
-packager upstream, FFmpeg quietly papers over it for you, which is exactly the kind of detail you can't
-afford to lose.
+[FFmpeg] looked more promising, since it can both consume and produce a stream. However, FFmpeg works
+with frames, not playlists. If you use it to record and replay an HLS stream, it demuxes and remuxes
+everything along the way. The playlists you get back look nothing like the originals, and the segments
+are repackaged from scratch. If the bug you're chasing was caused by a broken packager upstream, FFmpeg
+will happily paper over it, and that's exactly the kind of detail you can't afford to lose.
 
-Since there wasn't a tool that did exactly what I needed, I did the only logical thing: I built one myself! 😁
+Since no existing tool did what I needed, I did the only logical thing: I built one myself! 😁
 
 ## Introducing streamrr
 
-The result is [streamrr], a small command-line tool for recording and replaying HLS streams [written in
-Rust][main.rs] (mostly because I wanted an excuse to use it). As for the name: it's a nod to Mozilla's [rr],
-a record-and-replay debugger for native Linux programs. Since I'm terrible at naming things, I just stole their name.
+The result is [streamrr], a small command-line tool for recording and replaying HLS streams, [written in
+Rust][main.rs] (mostly because I wanted an excuse to use it). The name is a nod to Mozilla's [rr], a
+record-and-replay debugger for Linux programs. I'm terrible at naming things, so I just borrowed theirs.
 
-`streamrr` comes with two main commands, `record` and `replay`:
+`streamrr` has two main commands, `record` and `replay`:
 
 ```bash
 $ streamrr record https://example.com/mystream.m3u8 recordings/mystream/
@@ -105,42 +102,39 @@ $ streamrr replay recordings/mystream/
 Replay server listening on http://127.0.0.1:8080/
 ```
 
-`streamrr record` takes the URL of an HLS stream and a directory to record into. It downloads the multivariant
-playlist, then keeps following it: for a VOD stream, that means walking through every media playlist and
-segment until there's nothing left to download; for a live stream, it just keeps polling for new segments
-until you tell it to stop with `Ctrl+C`. Either way, once it's done, `recordings/mystream/` holds an exact,
-replayable copy of what was on the wire.
+`streamrr record` takes the URL of an HLS stream and a directory to record into. It downloads the
+multivariant playlist and then follows it. For a VOD stream, it downloads every media playlist and segment
+until there's nothing left. For a live stream, it keeps polling for new segments until you stop it with
+`Ctrl+C`. Either way, `recordings/mystream/` ends up with an exact, replayable copy of what was on the wire.
 
-`streamrr replay` takes that same directory and spawns a local HTTP server, serving the recording back out
-as an HLS stream at `http://127.0.0.1:8080/`. Point any player you like at that URL, and as far as the
-player is concerned, it's playing the original stream all over again.
+`streamrr replay` takes that same directory and starts a local HTTP server, which serves the recording as
+an HLS stream at `http://127.0.0.1:8080/`. Point any player at that URL, and as far as the player is
+concerned, it's playing the original stream all over again.
 
-That's the pitch in a nutshell. The interesting part is what has to happen behind the scenes to
-actually make a recording that will faithfully replay just like the original stream.
+That's the pitch in a nutshell. Now let's look at what happens behind the scenes to make a recording
+that replays just like the original stream.
 
 ## Recording a stream
 
-`streamrr record` is basically a small HLS client of its own. It starts by fetching whatever URL you gave
-it: if that turns out to be a multivariant playlist, it filters that down to the variant stream(s) and
-renditions you asked for (by default, just the first variant, plus the default audio, video and subtitle
-rendition), and kicks off a separate recording task for each one, [running in parallel][record_master_playlist].
-Every variant and every rendition gets its own subdirectory, `variant0/`, `media-audio-en-0/`, and so on,
-each with its own `index.m3u8`.
+`streamrr record` is basically a small HLS client. It starts by fetching the URL you gave it. If that's a
+multivariant playlist, it picks out the variant streams and renditions you asked for (by default, the
+first variant plus the default audio, video and subtitle renditions), and starts a separate recording
+task for each of them, [running in parallel][record_master_playlist]. Every variant and rendition gets its
+own subdirectory (`variant0/`, `media-audio-en-0/`, and so on), each with its own `index.m3u8`.
 
-Each of those subdirectories is where the actual HLS-following happens, in
-[`record_media_playlist`][record_media_playlist]. On every iteration, it downloads the current media
-playlist, saves any segments it hasn't seen before, and then either stops (if the playlist has
-`#EXT-X-ENDLIST`, meaning it's a fully downloaded VOD stream) or waits out the target duration and fetches
-the playlist again (if it's still live). Every fetched playlist is stamped with the time it was captured,
-`index-20260831T101500.m3u8` rather than just `index.m3u8`, so a live recording ends up as a whole sequence
-of these timestamped snapshots instead of a single file. That timestamp is what makes it possible to
-"replay" a live stream later, more on that in the next section.
+Each recording task runs [`record_media_playlist`][record_media_playlist] in a loop. On every iteration,
+it downloads the current media playlist and saves any segments it hasn't seen before. If the playlist has
+an `#EXT-X-ENDLIST` tag, the stream has ended (or was VOD to begin with), so it stops. Otherwise, the stream
+is still live, so it waits for the target duration and fetches the playlist again. Every playlist is saved
+with the time it was fetched (`index-20260831T101500.m3u8` rather than `index.m3u8`), so a live
+recording ends up as a sequence of timestamped snapshots instead of a single file. Those timestamps are
+what make it possible to replay a live stream later, as we'll see in the next section.
 
-The other job of that loop is rewriting: URLs in the original playlist point at wherever the packager put
-them, but you're now serving files off your own disk, so every reference has to become a local path
-instead. For a segment, that means picking a new file name based on its position in the playlist (its
-"media sequence number"), and stashing the original URL in a custom `#EXT-X-ORIGINAL-URI` tag right above
-it, so it doesn't get lost:
+The loop also rewrites the playlists. URLs in the original playlist point to wherever the packager put
+the files, but we'll be serving them from our own disk, so every reference must become a local path. For
+a segment, streamrr picks a new file name based on its position in the playlist (its "media sequence
+number"), and stores the original URL in a custom `#EXT-X-ORIGINAL-URI` tag right above it, so it doesn't
+get lost:
 
 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 <div>
@@ -177,7 +171,7 @@ segment-1.ts
 </div>
 </div>
 
-Boiled down, the actual rewrite in [`rewrite_segment`][rewrite_segment] looks like this:
+Simplified, the rewrite in [`rewrite_segment`][rewrite_segment] looks like this:
 
 ```rust
 fn rewrite_segment(segment: &mut MediaSegment, sequence: u64, playlist_url: &Url) -> Result<()> {
@@ -193,27 +187,25 @@ fn rewrite_segment(segment: &mut MediaSegment, sequence: u64, playlist_url: &Url
 }
 ```
 
-Initialization segments, encryption keys, and even the variant and rendition entries in the multivariant
-playlist all go through the same treatment: download it, rewrite its URI to a local path, and keep the
-original URL around as an `X-ORIGINAL-*` tag or attribute. By the time a recording finishes, every playlist
-on disk points only at other files inside that same recording, but nothing about where the stream actually
-came from has been lost.
+Initialization segments, encryption keys, and the variant and rendition entries in the multivariant
+playlist all get the same treatment: download the file, rewrite its URI to a local path, and keep the
+original URL in an `X-ORIGINAL-*` tag or attribute. When the recording is done, every playlist on disk
+only points to files inside the recording, but we still know where everything originally came from.
 
 ## Replaying a recording
 
-`streamrr replay` spins up a small [Warp]-based HTTP server, in [`replay()`][replay], that turns the files
-on disk back into something an HLS player can consume. The interesting part is faking "live": since the
-recording is a sequence of timestamped playlist snapshots, replay has to figure out, at any given moment
-during playback, which one of those snapshots the player should be seeing.
+`streamrr replay` starts a small HTTP server built with [Warp], in [`replay()`][replay], which serves the
+files on disk to an HLS player. The tricky part is faking a live stream. The recording is a sequence of
+timestamped playlist snapshots, so at any moment during playback, the server has to figure out which
+snapshot the player should see.
 
-That starts the moment a player requests the multivariant playlist for the very first time. If the request
-doesn't carry a `start` query parameter yet, the server treats that as "the session is starting right now":
-it redirects the player to the same URL with `?start=<timestamp>` appended, where the timestamp is just the
-current time in milliseconds. Every request that follows, for every variant and rendition playlist, carries
-that same `start` value along with it, because the rewritten multivariant playlist adds it to every variant
-and rendition URI it points to.
+This starts when the player first requests the multivariant playlist. If the request doesn't have a
+`start` query parameter yet, the server treats it as the start of a new session. It redirects the player
+to the same URL with `?start=<timestamp>` appended, where the timestamp is the current time in
+milliseconds. The server also adds that `start` parameter to every variant and rendition URI in the
+multivariant playlist, so all subsequent playlist requests carry the same value.
 
-From there, figuring out which recorded playlist to serve is just arithmetic, in
+From there, finding the right playlist to serve is simple arithmetic, in
 [`playlist_path_at_time`][playlist_path_at_time]:
 
 ```rust
@@ -231,106 +223,99 @@ fn playlist_path_at_time(
 }
 ```
 
-However much real time has passed since the player's `start` timestamp, that same amount of time gets added
-to the recording's own start time, and whichever playlist snapshot was captured closest to (but not after)
-that point in the recording is the one that gets served. Play the replayed stream for thirty seconds, and
-you'll see the same sequence of playlist updates a viewer would have seen thirty seconds into the original
-live broadcast, no matter when you actually pressed play. (If nothing was recorded yet at that offset, say,
-the player asks before the very first playlist was ever downloaded, it just falls back to the earliest
-snapshot instead.)
+The server takes the time that has passed since the player's `start` timestamp, and adds it to the start
+time of the recording. It then serves the last playlist snapshot that was captured at or before that
+point. Play the replayed stream for thirty seconds, and you'll see the same playlist updates that a viewer
+would have seen thirty seconds into the original live stream, no matter when you pressed play. (If the
+player asks for a point before the first snapshot was recorded, the server falls back to the earliest
+snapshot.)
 
-There's one more bit of cleanup before a playlist goes out the door: the `#EXT-X-ORIGINAL-URI` tags and
-their friends from the recording step get stripped back out again, so the player only ever sees the segment
-references it actually needs, not the bookkeeping streamrr added along the way.
+Before a playlist is sent out, there's one more bit of cleanup: the server strips out the
+`#EXT-X-ORIGINAL-URI` tags and friends that were added while recording, so the player only sees the
+regular HLS tags.
 
-Segments, initialization files and keys need none of this: their file names were already decided once, at
-recording time, and they never change afterwards, so the server just hands them straight off disk.
+Segments, initialization segments and keys need none of this. Their file names were decided at
+recording time and never change, so the server serves them straight from disk.
 
 Put it all together, and `streamrr replay` can make a five-minute-old recording look exactly like a live
-stream that just started: point any player at it, and it can't tell the difference.
+stream that just started. The player can't tell the difference.
 
 ## Stories from the lab
 
-Of course, the proof is in the pudding: does any of this actually help? Once streamrr worked, I handed it
-to other developers and support engineers to see what they'd do with it. Two stories in particular stuck
-with me.
+Of course, the proof of the pudding is in the eating: does any of this actually help? Once streamrr
+worked, I handed it to other developers and support engineers to see what they'd do with it. Two stories
+stood out.
 
 ### An audio/video desync
 
-One engineer was chasing an occasional audio/video desync that only showed up right at the start of a
-livestream, and only sometimes. Tracking it down meant refreshing the page over and over, waiting to see
-whether that particular attempt happened to desync, and then trying to read something useful out of it
-before the moment was gone.
+One engineer was chasing an audio/video desync that sometimes showed up right at the start of a
+livestream. Tracking it down meant refreshing the page over and over, hoping that this attempt would
+desync, and then trying to learn something from it before the moment was gone.
 
-Instead, they ran `streamrr record` alongside their usual refreshing, and simply kept it running until a
-desync showed up, then stopped the recording right there. Since the recording only had to happen once, from
-that point on they had a `streamrr replay` stream that desynced the exact same way, every single time they
-played it. That turned a debugging session that depended on luck into one they could just run again and
-again, tweaking one thing at a time, until they found the actual root cause.
+Instead, they ran `streamrr record` while refreshing, and stopped the recording as soon as they saw a
+desync. From then on, they had a replay that desynced in exactly the same way, every single time. A
+debugging session that depended on luck became one they could repeat as often as they liked, changing
+one thing at a time, until they found the root cause.
 
 ### A regression test from a rare edge case
 
-Another report came from a customer using server-side ad insertion (SSAI): on certain ad breaks, at certain
-seek times, the player would stall indefinitely. The engineer who picked it up eventually traced it back to
-how the player handled `#EXT-X-DISCONTINUITY` tags, the markers HLS uses to signal a switch between, say,
-the main content and an ad. In this particular edge case, the player ended up believing the video track was
-still in the main content while the audio track had already crossed into the ad, and got stuck reconciling
-the two.
+Another report came from a customer using server-side ad insertion (SSAI): on certain ad breaks, when
+seeking to certain times, the player would stall indefinitely. The engineer who picked it up traced it
+back to how the player handled `#EXT-X-DISCONTINUITY` tags, which HLS uses to mark a switch between (for
+example) the main content and an ad. In this edge case, the player thought the video track was still in
+the main content while the audio track had already moved on to the ad, and it got stuck trying to
+reconcile the two.
 
-Once they had a recording that reliably reproduced the bug, they didn't just use it to fix the player: they
-uploaded the recording to the team's own test streams and turned it straight into a regression test. That
-locked the fix in for good, and as a bonus, the test no longer depends on the original SSAI stream still
-being around: the recording _is_ the test fixture now.
+Once they had a recording that reliably reproduced the bug, they didn't just use it to fix the player.
+They also added it to the team's test streams and turned it into a regression test. That makes sure the
+bug stays fixed, and the test doesn't depend on the original SSAI stream still being around: the
+recording _is_ the test fixture.
 
 ## More ways to use it
 
-Both of those stories share the same shape: something rare and awkward to catch live becomes trivial to
-debug once you can replay it on demand. That pattern shows up in a few other places too.
+Both stories follow the same pattern: a bug that's rare and hard to catch live becomes easy to debug once
+you can replay it on demand. That pattern shows up in a few other places too.
 
-Discontinuities in general are a good source of these bugs: `#EXT-X-DISCONTINUITY` tags show up wherever a
-stream splices in an ad break, switches encoders, or otherwise breaks the assumption that timestamps keep
-increasing smoothly, and players don't always agree on how to handle that moment. The same goes for the
-other end of a live stream's life: when it ends and the playlist gets an `#EXT-X-ENDLIST` tag, turning a
-live stream into VOD, a player can sometimes be caught off guard by that transition too. Either way, a
-recording captures the exact moment things get weird, so you don't have to sit around waiting for it to
-happen again.
+Discontinuities are a common source of these bugs in general. `#EXT-X-DISCONTINUITY` tags appear wherever a
+stream splices in an ad break, switches encoders, or otherwise breaks the assumption that timestamps
+increase smoothly, and players don't always agree on how to handle them. The same goes for the end of a
+live stream: when the playlist gets an `#EXT-X-ENDLIST` tag and turns into VOD, that transition can catch
+a player off guard too. A recording captures the exact moment things go wrong, so you don't have to wait
+around for it to happen again.
 
-Then there's streams you simply can't get to whenever you want. Maybe access requires a VPN, or
-credentials that only last for a couple of days. Maybe the "stream" is quite literally a camera in a
-customer's office that someone has to walk over and switch on. Record it once, and you can debug that
-recording for as long as you need to -- no VPN or camera needed. Or flip it around: maybe it's not the
-stream that's hard to get to, it's you, stuck on a plane with no network at all. Either way, record it once
-while you have the chance, and you can take your time working the problem afterwards.
+Then there are streams you can't access whenever you want. Maybe they require a VPN, or credentials that
+only last a couple of days. Maybe the "stream" is literally a camera in a customer's office that someone
+has to walk over and switch on. Or maybe it's not the stream that's hard to reach, but you: stuck on a
+plane without any network. Either way, record the stream once while you can, and you can take all the time
+you need to debug it afterwards.
 
 ## Future work
 
-streamrr does what I need today, but there are a few directions I'd still like to take it:
+streamrr does what I need today, but there are a few directions I'd like to take it in:
 
-- **More protocols.** Right now it's HLS-only, but MPEG-DASH would actually be easier: a DASH manifest can
-  carry a `<UTCTiming>` element, which tells the player what time it should treat as "now". Point that at a
-  point in the past, and the player happily believes it's still watching live, no rewriting required. HLS
-  has no equivalent, which is why streamrr has to fake that same trick itself, by rewriting the playlists
-  and stamping its own `start` timestamp onto the very first request.
-- **Importing recordings, not just creating them.** Running `streamrr record` next to the real player works
-  fine, but it's not always the easiest way to get a recording: a stream might need some complicated
-  browser-only authentication, or a customer might have already handed you a HAR export from Chrome
-  DevTools without you having to ask. A `streamrr import` command, [currently in the works][import-pr],
-  would read that `.har` file straight into a recording, in the exact same format `record` produces.
-- **Maybe this shouldn't be a CLI at all?** Making HTTP requests, parsing HLS playlists and storing files
-  are all things a web app can do too, so recording (and maybe even replaying) could someday live entirely
-  in the browser.
+- **More protocols.** Right now it only supports HLS, but MPEG-DASH would actually be easier. A DASH
+  manifest can contain a `<UTCTiming>` element, which tells the player what time it should treat as "now".
+  Set that to a time in the past, and the player happily believes it's watching live, without any other
+  rewriting. HLS has no equivalent, which is why streamrr has to fake it with a `start` timestamp and some
+  playlist rewriting.
+- **Importing recordings.** Running `streamrr record` next to the player works fine, but it's not always
+  the easiest way to get a recording. A stream might need complicated browser-only authentication, or a
+  customer might have already sent you a HAR export from Chrome DevTools. A `streamrr import` command,
+  [currently in the works][import-pr], would turn that `.har` file into a recording, in the same format
+  that `record` produces.
+- **Maybe this shouldn't be a CLI at all?** A web app can also make HTTP requests, parse HLS playlists and
+  store files, so recording (and maybe even replaying) could someday happen entirely in the browser.
 
 ## Conclusion
 
-What surprised me most was how little "record and replay" turned out to be about HLS itself. The entire
-trick comes down to two small pieces of bookkeeping: download and rewrite every URL you see to a local
-file, and offset all playlist requests by a timestamp to make the replay feel "live".
+Record and replay for HLS comes down to two bits of bookkeeping: rewrite every URL to point to a local
+file, and offset every playlist request by a timestamp to make the replay feel live.
 
-What I'm most proud of, though, is that streamrr is now regularly used to solve real customer issues. Not
-bad for a quick hack that was originally supposed to get thrown away right after the talk.
+What I'm most proud of is that streamrr is now regularly used to solve real customer issues. Not bad for a
+quick hack that was supposed to be thrown away right after the talk.
 
-streamrr is [on GitHub][streamrr], open source, and just [one `cargo install` away][install]. Give it a try
-the next time one of your HLS streams is giving you a hard time.
+streamrr is open source, [available on GitHub][streamrr], and only [one `cargo install` away][install].
+Give it a try the next time one of your HLS streams is giving you a hard time.
 
 [Wireshark]: https://www.wireshark.org/
 [Chrome DevTools]: https://developer.chrome.com/docs/devtools
