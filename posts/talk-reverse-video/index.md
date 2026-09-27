@@ -3,8 +3,8 @@ title: 'Talk: The curious player of Benjamin Button: reverse video on the web'
 date: 2026-08-27T17:00:00+02:00
 ---
 
-At [Demuxed 2023](https://2023.demuxed.com/), I came back with a sequel: taking [baby's first HTML5 `<video>` element](/post/talk-baby-video/) and teaching it to play video, and audio, backwards, frame by frame.
-Watch the talk below, or stick around for the play-by-play of how I pulled it off.
+At [Demuxed 2023](https://2023.demuxed.com/), I came back with a sequel: I took [baby's first HTML5 `<video>` element](/post/talk-baby-video/) and taught it to play video (and audio) backwards, frame by frame.
+Watch the talk below, or read on to find out how it works.
 
 <script>
 import Video from "#lib/components/Video.svelte";
@@ -55,14 +55,14 @@ title="Slides"></Iframe>
 
 ## Motivation
 
-Video on the web only ever goes one way: forward. Press play, and time marches on. Why would you ever
-need it to go the other way?
+Video on the web only goes one way: forward. Press play, and time marches on. Why would you ever
+want it to go the other way?
 
-Turns out there's a few good reasons:
+There are a few good reasons:
 
-- **Video editing.** Finding the exact frame where a cut or a transition happens is a lot easier if you can nudge backwards and forwards around that point, instead of repeatedly seeking to guess where you landed.
-- **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot touches the ball, so you can freeze it and draw an imaginary line across the pitch. (Or something like that, I don't actually know how the offside rule works.)
-- **Funny GIFs.** The entire reason why the internet exists.
+- **Video editing.** Finding the exact frame where a cut or a transition happens is a lot easier if you can step backwards and forwards around it, instead of seeking over and over and guessing where you landed.
+- **Video-assisted refereeing.** Scrub through a replay to find the exact frame where an attacker's boot touches the ball, then freeze it and draw an imaginary line across the pitch. (Or something like that. I don't really know how the offside rule works.)
+- **Funny GIFs.** The reason the internet exists.
 
 <figure>
 
@@ -78,7 +78,7 @@ Peak internet content, now available in reverse.
 
 ## Isn't this already possible?
 
-Surely someone thought of this already. And indeed, [MDN's docs on `playbackRate`][playbackRate] say exactly what we want to hear:
+Surely someone has thought of this already? Indeed, [MDN's docs on `playbackRate`][playbackRate] say exactly what we want to hear:
 
 > A negative `playbackRate` value indicates that the media should be played backwards, but support for this is not yet widespread.
 
@@ -86,23 +86,23 @@ Surely someone thought of this already. And indeed, [MDN's docs on `playbackRate
 
 ![MDN browser compatibility table for negative playbackRate, with Chrome's cell expanded to show a note that setting a negative playbackRate throws an error.](./browser-compat-chrome.png)
 
-That's a "no" across the board, except for Safari. Surely that one works?
+That's a "no" across the board, except for Safari. So does that one work?
 
 ![MDN browser compatibility table for negative playbackRate, with Safari's cell expanded to show full support since Safari 3.1.](./browser-compat-safari.png)
 
 _Supposedly_, Safari has supported negative `playbackRate` since version 3.1, released all the way back in 2008.
 
-Let's find out: load a video directly in Safari, open the console, and set `playbackRate` to `-1`.
+Let's find out. Open a video in Safari, open the console, and set `playbackRate` to `-1`.
 
 <video controls muted src={reversePlaybackSafari}></video>
 
-Technically moving backwards, but at maybe one or two frames per second. It's less "reverse playback" and more "a slideshow, played in the wrong order." A valiant effort, but it doesn't count.
+It's technically moving backwards, but at maybe one or two frames per second. That's less "reverse playback" and more "a slideshow in the wrong order". A valiant effort, but it doesn't count.
 
-So in reality, none of the major browsers actually support reverse playback, despite what the spec and the compatibility tables might promise. Are we out of options?
+So in practice, none of the major browsers support reverse playback, whatever the spec and the compatibility tables promise. Are we out of options?
 
 ## Recap: baby's first video element
 
-If the browser's own `<video>` element won't play in reverse, why not build one that will? I already did most of the work for [last year's talk](/post/talk-baby-video/): `<baby-video>`, an HTML custom element that reimplements a chunk of the `<video>` element from scratch.
+If the browser's `<video>` element won't play in reverse, why not build one that will? I already did most of the work for [last year's talk](/post/talk-baby-video/): `<baby-video>`, a custom element that reimplements a large part of the `<video>` element from scratch.
 
 <figure>
 
@@ -118,17 +118,17 @@ Yes, we're back. No, my slide design still hasn't improved.
 
 Quick recap:
 
-- Implements part of the `<video>` element's own API: `play()`, `pause()`, `currentTime`, events, and so on.
-- Implements the Media Source Extensions API too: `MediaSource`, `SourceBuffer`, `appendBuffer()`.
-- Parses incoming fragmented MP4 into individual encoded video frames.
-- Decodes those frames with the [WebCodecs API][WebCodecs].
-- Renders the decoded frames onto a `<canvas>`.
+- It implements part of the `<video>` element's API: `play()`, `pause()`, `currentTime`, events, and so on.
+- It also implements the Media Source Extensions API: `MediaSource`, `SourceBuffer`, `appendBuffer()`.
+- It parses incoming fragmented MP4 into individual encoded video frames.
+- It decodes those frames with the [WebCodecs API][WebCodecs].
+- It renders the decoded frames onto a `<canvas>`.
 
-We've already reimplemented buffering, decoding, and rendering video ourselves. Now, we're going to make each of those three steps run _backwards_ instead of forwards.
+Since we already handle buffering, decoding and rendering ourselves, we can make each of those three steps run _backwards_.
 
 ## Step 1: buffering in reverse
 
-Every streaming player's buffering loop looks more or less the same:
+Every streaming player has a buffering loop that looks more or less like this:
 
 1. If there's enough buffer **after** current time, wait.
 2. Find the **next** segment **after** the **end** of the buffer.
@@ -136,7 +136,7 @@ Every streaming player's buffering loop looks more or less the same:
 4. If it was the **last** segment, we're done buffering.
 5. Otherwise, repeat.
 
-To buffer in reverse, flip the direction of every one of those lookups:
+To buffer in reverse, we flip the direction of each step:
 
 1. If there's enough buffer **before** current time, wait.
 2. Find the **previous** segment **before** the **start** of the buffer.
@@ -144,7 +144,7 @@ To buffer in reverse, flip the direction of every one of those lookups:
 4. If it was the **first** segment, we're done buffering.
 5. Otherwise, repeat.
 
-We'll implement this as a single buffering algorithm, with a `forward` flag threaded throughout to decide on the direction in each step. The following sample is trimmed down from [the real loop][demo-app], which also handles evicting old buffer and aborting on a seek:
+We can implement both as a single loop, with a `forward` flag that decides the direction of each step. Here's a trimmed-down version of [the real loop][demo-app], which also handles evicting old data from the buffer and aborting on a seek:
 
 ```js
 async function fillBuffer(sourceBuffer) {
@@ -178,13 +178,13 @@ async function fillBuffer(sourceBuffer) {
 }
 ```
 
-Nothing about a segment's own contents changes here, we're just walking through the list of segments back to front instead of front to back when `playbackRate` goes negative. Buffering fills up from the back of the video towards the front.
+The segments themselves don't change. When `playbackRate` goes negative, we simply walk through the list of segments back to front instead of front to back.
 
-Next up, let's update the decoder to also work when we reverse its direction.
+Next up: making the decoder work in reverse.
 
 ## Step 2: decoding in reverse
 
-We've appended our fMP4 segments and parsed them into individual encoded frames. Decoding them in reverse sounds like it should be just as simple as buffering in reverse: start with the last frame, run it through WebCodecs' `VideoDecoder`, store the resulting decoded frame, then work backwards from there.
+We've appended our fMP4 segments and parsed them into individual encoded frames. Decoding them in reverse sounds just as simple as buffering in reverse: take the last frame, run it through WebCodecs' `VideoDecoder`, store the decoded frame, and work backwards from there.
 
 <figure>
 
@@ -192,7 +192,7 @@ We've appended our fMP4 segments and parsed them into individual encoded frames.
 
 <figcaption>
 
-Feed the encoded frames into the decoder back to front, get decoded frames back in that same order. Should work, right?
+Feed the encoded frames to the decoder back to front, and get decoded frames back in the same order. Should work, right?
 
 </figcaption>
 
@@ -206,7 +206,7 @@ Let's try it on Big Buck Bunny:
 
 That is not how Big Buck Bunny is supposed to look. As video engineers, we've all seen those green frames before, and they haunt our nightmares.
 
-The problem is that video is mostly made up of P‑frames and B‑frames, not full images: they only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded independently. Feed them to the decoder in the wrong order, and there's no previous frame for them to be a difference _from_ anymore, hence the green mess.
+The problem is that most frames in a video are P‑frames and B‑frames, not full images. They only encode the difference (motion and error) relative to other nearby frames, so they can't be decoded on their own. Feed them to the decoder in the wrong order, and there's no reference frame left for them to be a difference _from_. Hence the green mess.
 
 <figure>
 
@@ -214,16 +214,16 @@ The problem is that video is mostly made up of P‑frames and B‑frames, not fu
 
 <figcaption>
 
-Inter-frame prediction in action: arrows showing where each macroblock moved from in the previous frame, plus a small residual to correct whatever that motion alone didn't capture.
+Inter-frame prediction in action. The arrows show where each macroblock moved from in the previous frame. A small residual then corrects whatever the motion alone didn't capture.
 
 </figcaption>
 
 </figure>
 
-So we can't just feed frames to the decoder in reverse. But we don't have to give up on reordering entirely, either:
+So we can't simply feed frames to the decoder in reverse. But we don't have to give up on reordering entirely:
 
-- Frames within one group of pictures ("GOP") still need to go to the decoder in their _original_ order, since they depend on each other.
-- We _can_ still change the order in which we send entire GOPs, since they _are_ independent from one another.
+- Frames within one group of pictures ("GOP") must still go to the decoder in their _original_ order, since they depend on each other.
+- We _can_ change the order in which we send entire GOPs, since those _are_ independent of one another.
 
 <figure>
 
@@ -231,7 +231,7 @@ So we can't just feed frames to the decoder in reverse. But we don't have to giv
 
 <figcaption>
 
-To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 2 through the decoder before GOP 1, keeping each GOP's own frame order intact.
+To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 2 to the decoder before GOP 1, but keep the frame order within each GOP intact.
 
 </figcaption>
 
@@ -239,7 +239,7 @@ To decode frame 6, we still need to decode frames 4 and 5 first. So we send GOP 
 
 ## Step 3: rendering in reverse
 
-The decoder is fixed, but its output is still not something you'd want to look at directly: frames now come out grouped by GOP instead of by playback order, 4, 5, 6, 1, 2, 3 instead of the 6, 5, 4, 3, 2, 1 we actually want to show. Untangling that mess is the renderer's job.
+The decoder now works, but its output isn't in the right order yet. Frames come out grouped by GOP: 4, 5, 6, 1, 2, 3 instead of the 6, 5, 4, 3, 2, 1 we want to show. Untangling that is the renderer's job.
 
 On every `requestAnimationFrame()`:
 
@@ -247,7 +247,7 @@ On every `requestAnimationFrame()`:
 2. Find the decoded frame at `currentTime`.
 3. Draw that frame to the `<canvas>`.
 
-The first step barely needs any changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so once `playbackRate` is negative, `currentTime` just ticks downwards on its own. The second step is where the reordering from [step 2](#step-2-decoding-in-reverse) actually gets resolved, in [`#renderVideoFrame()`][render-frame]:
+The first step needs no changes: `currentTime` already advances by `playbackRate * elapsedTime` on every frame, so with a negative `playbackRate` it counts down on its own. The second step is where we undo the reordering from [step 2](#step-2-decoding-in-reverse), in [`#renderVideoFrame()`][render-frame]:
 
 ```js
 #renderVideoFrame() {
@@ -268,37 +268,37 @@ The first step barely needs any changes: `currentTime` already advances by `play
 }
 ```
 
-`findIndex()` doesn't care where in the array a frame lives, it just looks for whichever one's timestamp covers `currentTime`. So it doesn't matter that our decoded frames are sitting there as 4, 5, 6, 1, 2, 3 instead of 6, 5, 4, 3, 2, 1: rendering just has to look a little further into the list sometimes to find the one it wants.
+`findIndex()` doesn't care where a frame sits in the array. It looks for the frame whose timestamp covers `currentTime`, wherever it is. So it doesn't matter that our decoded frames are stored as 4, 5, 6, 1, 2, 3 instead of 6, 5, 4, 3, 2, 1. The renderer sometimes has to look a bit further down the list, that's all.
 
 <video controls muted src={reverseFixed}></video>
 
-And there it is: Big Buck Bunny, running entirely in reverse, butterfly and all.
+And there it is: Big Buck Bunny, playing in reverse, butterfly and all.
 
 ## Challenges
 
-Getting this working exposed a couple of memory challenges that forward playback never has to deal with.
+Getting this to work exposed two memory problems that forward playback never has to deal with.
 
-The first one comes straight out of [step 2](#step-2-decoding-in-reverse): to decode frame 6, we first had to decode frames 4 and 5. That means the _first_ frame we decode out of a GOP is the _last_ one we get to render, so the whole GOP has to sit around fully decoded in the meantime. That's a problem, because the GPU can only hold on to a handful of fully decoded frames at once. The workaround is to copy each frame out of GPU memory and back into it when it's actually needed, via [`createImageBitmap()`][on-video-frame]: less efficient than leaving frames where they are, but it works well enough.
+The first one follows directly from [step 2](#step-2-decoding-in-reverse). To decode frame 6, we first had to decode frames 4 and 5. The _first_ frame we decode from a GOP is the _last_ one we render, so the whole GOP has to be kept around in decoded form. That's a problem, because the GPU can only hold on to a handful of decoded frames at once. The workaround is to copy each frame out of GPU memory with [`createImageBitmap()`][on-video-frame], and copy it back in when we need to render it. That's less efficient than leaving frames where they are, but it works well enough.
 
-The second one is about staying ahead: by the time we render the first frame of a GOP, we'd better already have the next frame ready to go, which is the _last_ frame of the _previous_ GOP. So that GOP needs to be decoded well in advance too. `<baby-video>` doesn't special-case this for GOPs specifically, it just always tries to keep a healthy [buffer of decoded frames][decode-video-frames] ahead of the current position, which happens to cover this case as a side effect, at the cost of using even more memory.
+The second one is about staying ahead. By the time we render the first frame of a GOP, the next frame had better be ready. That's the _last_ frame of the _previous_ GOP, so that GOP must also be decoded well in advance. `<baby-video>` doesn't handle this as a special case. It always tries to keep a healthy [buffer of decoded frames][decode-video-frames] ahead of the current position, which covers this case too, at the cost of using even more memory.
 
-None of this is a problem on a desktop with plenty of RAM and a fast GPU, but it might not play as smoothly on a lower-end smartphone. Sorry. You can try [downloading more RAM](https://downloadmoreram.com/).
+None of this is a problem on a desktop with plenty of RAM and a fast GPU, but it might not play as smoothly on a low-end smartphone. Sorry. You can try [downloading more RAM](https://downloadmoreram.com/).
 
 ## Bonus: reverse audio
 
-`<baby-video>` doesn't have any real use case for this, but since I'd already come this far: it plays audio in reverse too.
+There's no real use case for this, but since I'd already come this far, `<baby-video>` plays audio in reverse too.
 
-Audio turns out to be a lot simpler than video:
+Audio is a lot simpler than video:
 
-- Audio frames are encoded independently, so they can be decoded in any order. No GOPs, no dependency chains, none of Step 2's headaches.
-- Each audio frame contains multiple samples, though, so decoding frames in the right order isn't quite enough: the samples _within_ each frame need to be reversed too.
+- Audio frames are encoded independently, so they can be decoded in any order. No GOPs, no dependency chains, none of the headaches from step 2.
+- Each audio frame contains many samples, though, so putting the frames in the right order isn't enough. The samples _within_ each frame need to be reversed as well.
 
-Rendering uses Web Audio's `AudioBufferSourceNode`. `<baby-video>` concatenates several decoded audio frames into a single `AudioBuffer` (fewer nodes to manage), and, for reverse playback, reverses both the frame order and the samples within it, in [`#renderAudioFrame()`][render-audio-frame]:
+For rendering, we use Web Audio's `AudioBufferSourceNode`. `<baby-video>` concatenates several decoded audio frames into a single `AudioBuffer` (so there are fewer nodes to manage). For reverse playback, it reverses both the order of the frames and the samples within them, in [`#renderAudioFrame()`][render-audio-frame]:
 
 ```js
 #renderAudioFrame(frames, direction) {
-  // Frames were decoded in an arbitrary order, so put them back
-  // in their original chronological order first.
+  // When playing backwards, frames arrive in reverse order,
+  // so put them back in chronological order first.
   if (direction === Direction.BACKWARD) {
     frames.reverse()
   }
@@ -328,17 +328,17 @@ Rendering uses Web Audio's `AudioBufferSourceNode`. `<baby-video>` concatenates 
 }
 ```
 
-That buffer is then handed to an `AudioBufferSourceNode`, scheduled slightly ahead of time via [`node.start(when)`][schedule-audio-buffer] so a late scheduling call never leaves an audible gap. An `AudioWorklet` would probably do an even better job of this, but I never got around to making that work.
+The buffer then goes to an `AudioBufferSourceNode`, which is scheduled slightly ahead of time with [`node.start(when)`][schedule-audio-buffer], so a late call doesn't leave an audible gap. An `AudioWorklet` would probably do an even better job, but I never got around to trying that.
 
 <video controls src={butterflyReversed}></video>
 
-There's still a bit of a crackle in there, so `AudioWorklet` might be worth revisiting someday. But it's good enough to enjoy the ending the way it was meant to be: the butterfly comes back to life.
+There's still a bit of crackling, so `AudioWorklet` might be worth revisiting someday. But it's good enough to enjoy the ending the way it was meant to be: the butterfly comes back to life.
 
 ## Conclusion
 
-The thing that surprised me most about this project is how little of it was actually about "reverse" as some separate mode to design for. Buffering just needed a `forward` flag threaded through the same loop it already had. Decoding just needed to feed the very same GOPs into the very same `VideoDecoder` in a different order. Rendering didn't need to change at all. The one real cost is memory: reverse playback has to hold an entire GOP fully decoded at once, since the first frame it decodes is the last one it gets to show. And reversing audio, with no inter-frame prediction to worry about, turned out to be about as simple as it sounds.
+Reverse playback didn't need a separate design. Buffering needed a `forward` flag in the loop it already had. Decoding needed to send the same GOPs to the same `VideoDecoder`, just in a different order. Rendering barely changed at all. The real cost is memory: reverse playback has to keep an entire GOP in decoded form, since the first frame it decodes is the last one it shows. And audio, with no inter-frame prediction to worry about, was about as simple as it sounds.
 
-You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs: click the "1x" playback rate button in the controls to switch it to "-1x", and watch it play backwards. The full source, reverse playback included, is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
+You can [try `<baby-video>` yourself](https://mattiasbuelens.github.io/baby-video/) in a browser that supports WebCodecs. Click the "1x" playback rate button in the controls to switch it to "-1x", and watch it play backwards. The full source code is on [GitHub](https://github.com/MattiasBuelens/baby-video) if you want to poke around.
 
 [render-audio-frame]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1111-L1171
 [schedule-audio-buffer]: https://github.com/MattiasBuelens/baby-video/blob/6d908d377d052b8eafbb29ecddffcde1e59d9b18/src/video-element.ts#L1210-L1232
